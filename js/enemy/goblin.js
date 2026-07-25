@@ -14,12 +14,44 @@ class Goblin extends G.enemy.Enemy {
       type: 'goblin',
       attackCooldown: 0.8
     });
+    this.frameIndex = 0;
+    this.frameTimer = 0;
   }
 
   update(dt, player, onPlayerDamage) {
     super.update(dt, player);
     G.enemy.ai.chase(this, player, this.speed, dt);
     this.tryAttackPlayer(player, onPlayerDamage);
+
+    // toggle antar 2 pose biar keliatan jalan, bukan diem kaku
+    this.frameTimer += dt;
+    if (this.frameTimer >= 0.25) {
+      this.frameTimer = 0;
+      this.frameIndex = this.frameIndex === 0 ? 1 : 0;
+    }
+  }
+
+  drawShape(ctx, screen) {
+    const img = G.enemy.sprites && G.enemy.sprites.goblin;
+    if (!img) { super.drawShape(ctx, screen); return; } // fallback lingkaran kalau sprite belum ke-load
+
+    const sheet = G.CONST.GOBLIN_SHEET;
+    const f = sheet.frames[this.frameIndex] || sheet.frames[0];
+    const drawH = sheet.drawHeight;
+    const drawW = drawH * (f.w / f.h);
+
+    ctx.save();
+    if (this.hitFlash > 0) {
+      ctx.filter = 'brightness(2) saturate(0)';
+    }
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(
+      img,
+      f.x, f.y, f.w, f.h,
+      Math.round(screen.x - drawW / 2), Math.round(screen.y - drawH / 2),
+      drawW, drawH
+    );
+    ctx.restore();
   }
 }
 

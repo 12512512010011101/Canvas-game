@@ -17,13 +17,15 @@ window.G = window.G || {};
   let assets;
   try {
     assets = await G.utils.helper.loadImages({
-      playerSheet: 'assets/player/run_anim_sheet.png',
-      iconsSheet: 'assets/items/icons_sheet.png',
-      armourSheet: 'assets/items/armour.png',
-      potionSheet: 'assets/items/potion.png',
-      blueBullet: 'assets/items/blue_bullet.png',
-      purpleBullet: 'assets/items/purple_bullet.png'
-    });
+  playerSheet: 'assets/player/run_anim_sheet.png',
+  iconsSheet: 'assets/items/icons_sheet.png',
+  armourSheet: 'assets/items/armour.png',
+  potionSheet: 'assets/items/potion.png',
+  blueBullet: 'assets/items/blue_bullet.png',
+  purpleBullet: 'assets/items/purple_bullet.png',
+  goblinSheet: 'assets/enemy/goblin/goblin.png',
+  witchSheet: 'assets/witch/witch.png'
+});
     loadingEl.textContent = 'Siap dimainkan!';
     startBtn.disabled = false;
   } catch (err) {

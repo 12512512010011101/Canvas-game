@@ -27,9 +27,10 @@ class Game {
     this._setupUI();
   }
 
-  _setupPlayer() {
+_setupPlayer() {
     this.player = new G.player.Player(this.worldW / 2, this.worldH / 2, this.assets.playerSheet, this.raceId, this.mimicRaceIds);
     G.items.iconImage = this.assets.iconsSheet;
+    G.enemy.sprites = { goblin: this.assets.goblinSheet, witch: this.assets.witchSheet };
     const starter = G.items.getById('sword_iron');
     starter.applyTo(this.player);
     this.player.addItem(starter.id);
@@ -89,9 +90,13 @@ class Game {
           loot.items.forEach((item) => {
             if (item.type === 'armor_set') {
               item.applyTo(this.player);
-            } else {
-              if (item.type !== 'consumable') item.applyTo(this.player);
+            } else if (item.type === 'consumable') {
               this.player.addItem(item.id);
+            } else {
+              if (!this.player.inventory.includes(item.id)) {
+                item.applyTo(this.player);
+                this.player.addItem(item.id);
+              }
             }
           });
           this.player.gold += loot.gold;
