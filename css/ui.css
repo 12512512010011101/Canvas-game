@@ -78,6 +78,10 @@
   border: 1px solid #ffd75e;
   background: rgba(255, 215, 94, 0.08);
 }
+.combo-card .loot-icon {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .btn-combo {
   background: #d4a017;
 }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sprite Inspector - potion.png</title>
+<style>
+  body { background:#1c2b1e; color:#fff; font-family: sans-serif; padding: 20px; }
+  h1 { font-size: 18px; }
+  p { font-size: 13px; color: #ccc; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 600px; }
+  .cell { text-align: center; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; }
+  .icon {
+    width: 64px;
+    height: 128px;
+    margin: 0 auto;
+    image-rendering: pixelated;
+    background-image: url('assets/items/potion.png');
+    background-size: 256px 768px;
+    background-repeat: no-repeat;
+  }
+  .coord { font-size: 11px; color: #ffd75e; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <h1>🔍 Semua cell di potion.png (16x32 tiap cell, 4 kolom x 6 baris)</h1>
+  <p>Cari cell yang isinya vial/botol MERAH utuh, dan mana yang HIJAU utuh. Catat angka (x,y) di bawahnya.</p>
+  <div class="grid" id="grid"></div>
+  <script>
+    const grid = document.getElementById('grid');
+    const cellW = 16, cellH = 32, cols = 4, rows = 6, scale = 4;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * cellW, y = r * cellH;
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.innerHTML = `<div class="icon" style="background-position:-${x*scale}px -${y*scale}px;"></div><div class="coord">x:${x}, y:${y}</div>`;
+        grid.appendChild(div);
+      }
+    }
+  </script>
+</body>
+</html>
