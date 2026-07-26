@@ -20,11 +20,30 @@ G.CONST = {
     rows: 8,
     scale: 2.5 // ukuran render di canvas = 16*2.5 = 40px
   },
-  PLAYER_ROW_MAP: {
+PLAYER_ROW_MAP: {
     down:  { idleRow: 0, runRow: 1 },
     left:  { idleRow: 2, runRow: 3 },
     right: { idleRow: 4, runRow: 5 },
     up:    { idleRow: 6, runRow: 7 }
+  },
+
+  // --- Enemy sprites (bukan grid rapi, jadi rect frame ditulis manual) ---
+  // assets/enemy/goblin/goblin.png -> cuma ada 2 pose valid di kanvas 2304x192,
+  // sisanya kosong. Kalau nanti nambah frame baru, tinggal tambah rect di array ini.
+  GOBLIN_SHEET: {
+    frames: [
+      { x: 18, y: 5, w: 236, h: 183 },
+      { x: 336, y: 0, w: 239, h: 192 }
+    ],
+    drawHeight: 56 // tinggi render di canvas, lebar menyesuaikan rasio asli
+  },
+  // assets/witch/witch.png -> sama, cuma 2 pose di kanvas 2240x320
+  WITCH_SHEET: {
+    frames: [
+      { x: 24, y: 12, w: 513, h: 288 },
+      { x: 584, y: 12, w: 513, h: 288 }
+    ],
+    drawHeight: 64
   },
 
   // --- Icon sheet (assets/items/icons_sheet.png) ---
