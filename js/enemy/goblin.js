@@ -23,22 +23,24 @@ class Goblin extends G.enemy.Enemy {
     G.enemy.ai.chase(this, player, this.speed, dt);
     this.tryAttackPlayer(player, onPlayerDamage);
 
-    // toggle antar 2 pose biar keliatan jalan, bukan diem kaku
     this.frameTimer += dt;
-    if (this.frameTimer >= 0.25) {
+    if (this.frameTimer >= 0.12) {
       this.frameTimer = 0;
-      this.frameIndex = this.frameIndex === 0 ? 1 : 0;
+      const sheet = G.CONST.GOBLIN_SHEET;
+      this.frameIndex = (this.frameIndex + 1) % sheet.cols;
     }
   }
 
   drawShape(ctx, screen) {
     const img = G.enemy.sprites && G.enemy.sprites.goblin;
-    if (!img) { super.drawShape(ctx, screen); return; } // fallback lingkaran kalau sprite belum ke-load
+    if (!img) { super.drawShape(ctx, screen); return; }
 
     const sheet = G.CONST.GOBLIN_SHEET;
-    const f = sheet.frames[this.frameIndex] || sheet.frames[0];
+    const row = sheet.walkRow;
+    const fx = this.frameIndex * sheet.frameW;
+    const fy = row * sheet.frameH;
     const drawH = sheet.drawHeight;
-    const drawW = drawH * (f.w / f.h);
+    const drawW = drawH * (sheet.frameW / sheet.frameH);
 
     ctx.save();
     if (this.hitFlash > 0) {
@@ -47,7 +49,7 @@ class Goblin extends G.enemy.Enemy {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(
       img,
-      f.x, f.y, f.w, f.h,
+      fx, fy, sheet.frameW, sheet.frameH,
       Math.round(screen.x - drawW / 2), Math.round(screen.y - drawH / 2),
       drawW, drawH
     );

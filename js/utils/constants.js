@@ -31,11 +31,13 @@ PLAYER_ROW_MAP: {
   // assets/enemy/goblin/goblin.png -> cuma ada 2 pose valid di kanvas 2304x192,
   // sisanya kosong. Kalau nanti nambah frame baru, tinggal tambah rect di array ini.
   GOBLIN_SHEET: {
-    frames: [
-      { x: 18, y: 5, w: 236, h: 183 },
-      { x: 336, y: 0, w: 239, h: 192 }
-    ],
-    drawHeight: 56 // tinggi render di canvas, lebar menyesuaikan rasio asli
+    frameW: 32,
+    frameH: 32,
+    cols: 6,
+    rows: 3,
+    walkRow: 0,   // baris yang dipakai buat animasi jalan (ganti kalau row 0 bukan yang jalan)
+    attackRow: null, // isi angka row (0/1/2) kalau ada row khusus attack
+    drawHeight: 56
   },
   // assets/witch/witch.png -> sama, cuma 2 pose di kanvas 2240x320
   WITCH_SHEET: {
@@ -75,7 +77,7 @@ PLAYER_ROW_MAP: {
   },
 
   WAVE: {
-    baseEnemyCount: 50,   // minimal 50 musuh per wave (sesuai request)
+    baseEnemyCount: 20,   // minimal 50 musuh per wave (sesuai request)
     countPerWave: 4,      // makin nambah terus tiap wave
     timeBetweenWaves: 4,  // detik jeda setelah wave clear
     spawnWindowSeconds: 8 // semua musuh di 1 wave selesai muncul dalam ~8 detik, walau jumlahnya banyak
