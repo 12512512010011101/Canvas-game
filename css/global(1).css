@@ -1,0 +1,54 @@
+/* css/global.css */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: #0d1410;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #eee;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #3aa65a;
+  color: #fff;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+button:hover {
+  background: #45c46b;
+  transform: translateY(-1px);
+}
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rarity-common { color: #cfd4d8; }
+.rarity-rare { color: #4aa3ff; }
+.rarity-epic { color: #c46bf0; }
+.rarity-legendary { color: #ffb545; }

@@ -1,0 +1,134 @@
+/* css/game.css */
+#game-canvas {
+  display: none;
+  background: #1c2b1e;
+  border: 3px solid #2f4a33;
+  border-radius: 6px;
+  image-rendering: pixelated;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  max-width: 96vw;
+  max-height: 90vh;
+}
+#game-canvas.visible {
+  display: block;
+}
+
+#hud-hint {
+  display: none;
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.4);
+  padding: 6px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+#hud-hint.visible {
+  display: block;
+}
+.touch-joystick-base,
+.touch-button-row,
+.touch-menu-row,
+.touch-btn-awakening {
+  display: none;
+}
+
+body.touch-device .touch-joystick-base {
+  display: block;
+  position: fixed;
+  left: 28px;
+  bottom: 28px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  touch-action: none;
+  z-index: 25;
+}
+.touch-joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Grup aksi utama: E (interact) & Esc (pause), dekat jempol kanan bawah */
+body.touch-device .touch-button-row {
+  display: flex;
+  position: fixed;
+  right: 20px;
+  bottom: 28px;
+  gap: 16px;
+  z-index: 25;
+}
+.touch-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0;
+}
+.touch-btn.active {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Grup menu: Inventory (I) & Statistik (C), dipindah jauh ke pojok atas
+   supaya tidak nempel sama tombol Awakening/aksi saat combat */
+body.touch-device .touch-menu-row {
+  display: flex;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  gap: 12px;
+  z-index: 25;
+}
+.touch-btn-menu {
+  width: 42px;
+  height: 42px;
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Tombol Awakening (F): berdiri sendiri, lebih besar, warna beda,
+   dan dikasih jarak yang jelas dari grup E/Esc supaya tidak kepencet */
+body.touch-device .touch-btn-awakening {
+  display: flex;
+  position: fixed;
+  right: 26px;
+  bottom: 108px;
+  width: 58px;
+  height: 58px;
+  font-size: 15px;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 209, 102, 0.55), rgba(255, 170, 0, 0.18));
+  border: 2px solid rgba(255, 209, 102, 0.65);
+  box-shadow: 0 0 14px rgba(255, 190, 60, 0.35);
+}
+.touch-btn-awakening.active {
+  background: radial-gradient(circle at 35% 30%, rgba(255, 209, 102, 0.85), rgba(255, 170, 0, 0.4));
+  border-color: rgba(255, 224, 130, 0.9);
+}
+
+body.touch-device #hud-hint {
+  display: none !important;
+}
