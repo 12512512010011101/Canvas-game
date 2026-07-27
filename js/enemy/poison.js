@@ -20,26 +20,16 @@ class PoisonEnemy extends G.enemy.Enemy {
     this.frameTimer = 0;
   }
 
-  update(dt, player, onPlayerDamage) {
+update(dt, player, onPlayerDamage) {
     super.update(dt, player);
     G.enemy.ai.chase(this, player, this.speed, dt);
     this.tryAttackPlayer(player, onPlayerDamage);
 
     this.frameTimer += dt;
-    if (this.frameTimer >= 0.25) {
+    if (this.frameTimer >= 0.12) {
       this.frameTimer = 0;
-      this.frameIndex = this.frameIndex === 0 ? 1 : 0;
-    }
-  }
-
-  // override: selain damage kontak, juga nempelin status racun ke player
-  tryAttackPlayer(player, onDamage) {
-    const dist = G.utils.math.distance(this.x, this.y, player.x, player.y);
-    if (dist < this.radius + player.radius + 4 && this.attackTimer <= 0) {
-      const dealt = player.takeDamage(this.damage);
-      player.applyPoison(this.poisonDamage, this.poisonDuration);
-      this.attackTimer = this.attackCooldown;
-      if (onDamage) onDamage(dealt, false, true); // argumen ke-3: kena racun
+      const sheet = G.CONST.WITCH_SHEET;
+      this.frameIndex = (this.frameIndex + 1) % sheet.walkFrames.length;
     }
   }
 
@@ -48,9 +38,12 @@ class PoisonEnemy extends G.enemy.Enemy {
     if (!img) { super.drawShape(ctx, screen); return; }
 
     const sheet = G.CONST.WITCH_SHEET;
-    const f = sheet.frames[this.frameIndex] || sheet.frames[0];
+    const row = sheet.walkRow;
+    const col = sheet.walkFrames[this.frameIndex];
+    const fx = col * sheet.frameW;
+    const fy = row * sheet.frameH;
     const drawH = sheet.drawHeight;
-    const drawW = drawH * (f.w / f.h);
+    const drawW = drawH * (sheet.frameW / sheet.frameH);
 
     ctx.save();
     if (this.hitFlash > 0) {
@@ -59,11 +52,21 @@ class PoisonEnemy extends G.enemy.Enemy {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(
       img,
-      f.x, f.y, f.w, f.h,
+      fx, fy, sheet.frameW, sheet.frameH,
       Math.round(screen.x - drawW / 2), Math.round(screen.y - drawH / 2),
       drawW, drawH
     );
     ctx.restore();
+  }
+    // override: selain damage kontak, juga nempelin status racun ke player
+  tryAttackPlayer(player, onDamage) {
+    const dist = G.utils.math.distance(this.x, this.y, player.x, player.y);
+    if (dist < this.radius + player.radius + 4 && this.attackTimer <= 0) {
+      const dealt = player.takeDamage(this.damage);
+      player.applyPoison(this.poisonDamage, this.poisonDuration);
+      this.attackTimer = this.attackCooldown;
+      if (onDamage) onDamage(dealt, false, true); // argumen ke-3: kena racun
+    }
   }
 }
 

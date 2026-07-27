@@ -39,13 +39,17 @@ PLAYER_ROW_MAP: {
     attackRow: null, // isi angka row (0/1/2) kalau ada row khusus attack
     drawHeight: 56
   },
-  // assets/witch/witch.png -> sama, cuma 2 pose di kanvas 2240x320
+  // assets/witch/witch.png -> kanvas asli 2240x320, cell asli 80x64 (BUKAN 32x32 —
+  // sudah diukur manual dari file pngnya). walkRow=0 isinya cuma 10 frame yang valid,
+  // sisanya kolom kosong, makanya dipakai array walkFrames, bukan cols mentah.
   WITCH_SHEET: {
-    frames: [
-      { x: 24, y: 12, w: 513, h: 288 },
-      { x: 584, y: 12, w: 513, h: 288 }
-    ],
-    drawHeight: 64
+    frameW: 80,
+    frameH: 64,
+    cols: 28,
+    rows: 5,
+    walkRow: 0,
+    walkFrames: [0, 1, 2, 3, 5, 7, 8, 9, 10, 12], // kolom yang isinya frame valid di walkRow
+    drawHeight: 56
   },
 
   // --- Icon sheet (assets/items/icons_sheet.png) ---
