@@ -212,3 +212,16 @@
   color: #bbb;
   text-transform: capitalize;
 }
+
+/* Skill select modal */
+.skill-card-tag {
+  color: #ffd75e !important;
+  font-weight: 700;
+}
+.skill-card-stats {
+  color: #9fd3ac;
+}
+.skill-card:hover {
+  border-color: #ffd75e;
+  background: rgba(255, 215, 94, 0.08);
+}

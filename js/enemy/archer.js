@@ -19,7 +19,10 @@ class Archer extends G.enemy.Enemy {
 
   update(dt, player, spawnProjectile) {
     super.update(dt, player);
-    G.enemy.ai.keepDistance(this, player, this.preferredDist, this.speed, dt);
+
+    if (this.controlTimer > 0) return;
+
+    G.enemy.ai.keepDistance(this, player, this.preferredDist, this.getSpeed(), dt);
 
     const dist = G.utils.math.distance(this.x, this.y, player.x, player.y);
     if (dist < 260 && this.attackTimer <= 0) {
@@ -28,7 +31,7 @@ class Archer extends G.enemy.Enemy {
       spawnProjectile({
         x: this.x, y: this.y,
         vx: dir.x * 180, vy: dir.y * 180,
-        damage: this.damage,
+        damage: this.damage * this.atkDebuffMult,
         owner: 'enemy',
         radius: 4
       });

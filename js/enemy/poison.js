@@ -22,7 +22,10 @@ class PoisonEnemy extends G.enemy.Enemy {
 
 update(dt, player, onPlayerDamage) {
     super.update(dt, player);
-    G.enemy.ai.chase(this, player, this.speed, dt);
+
+    if (this.controlTimer > 0) return;
+
+    G.enemy.ai.chase(this, player, this.getSpeed(), dt);
     this.tryAttackPlayer(player, onPlayerDamage);
 
     this.frameTimer += dt;
@@ -62,7 +65,7 @@ update(dt, player, onPlayerDamage) {
   tryAttackPlayer(player, onDamage) {
     const dist = G.utils.math.distance(this.x, this.y, player.x, player.y);
     if (dist < this.radius + player.radius + 4 && this.attackTimer <= 0) {
-      const dealt = player.takeDamage(this.damage);
+      const dealt = player.takeDamage(this.damage * this.atkDebuffMult);
       player.applyPoison(this.poisonDamage, this.poisonDuration);
       this.attackTimer = this.attackCooldown;
       if (onDamage) onDamage(dealt, false, true); // argumen ke-3: kena racun

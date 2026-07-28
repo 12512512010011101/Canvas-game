@@ -25,22 +25,26 @@ G.player.RACES = [
     id: 'undead', name: 'Undead', emoji: '🧟',
     baseDamage: 6, hpStar: 4, defStar: 4, atkSpdStar: 2, critStar: 3, xpStar: 3, moveStar: 3,
     passiveText: 'Revive sekali tiap 120 detik.',
-    tradeoffText: 'Efek heal berkurang 50%'
+    tradeoffText: 'Efek heal berkurang 50%',
+    awakeningText: 'Undying Will: tidak bisa mati (HP minimal 1) selama aktif. Defense +50%.'
   },
   {
     id: 'elf', name: 'Elf', emoji: '🧝',
     baseDamage: 6, hpStar: 3, defStar: 2, atkSpdStar: 5, critStar: 3, xpStar: 3, moveStar: 3,
-    passiveText: 'Attack Speed tertinggi. Efek potion +15%.'
+    passiveText: 'Attack Speed tertinggi. Efek potion +15%.',
+    awakeningText: "Nature's Grace: Attack Speed & Move Speed +30%, efek potion naik jadi +50%."
   },
   {
     id: 'dwarf', name: 'Dwarf', emoji: '⛏️',
     baseDamage: 6, hpStar: 4, defStar: 5, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 2,
-    passiveText: 'Legendary Drop +15%.'
+    passiveText: 'Legendary Drop +15%.',
+    awakeningText: "Mountain's Wrath: Defense +40%, Damage +30%, Legendary Drop chance x2 selama aktif."
   },
   {
     id: 'beast', name: 'Beast', emoji: '🐺',
     baseDamage: 9, hpStar: 4, defStar: 3, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 3,
-    passiveText: 'Damage dasar tertinggi.'
+    passiveText: 'Damage dasar tertinggi.',
+    awakeningText: 'Feral Instinct: Damage +50%, Attack Speed +25%, tiap kill heal 5% Max HP.'
   },
   {
     id: 'demon', name: 'Demon', emoji: '😈',

@@ -86,6 +86,61 @@ G.ui.hud = {
     ctx.fillText(waveLabel, G.CONST.CANVAS_W - pad, pad + 12);
     ctx.fillText(`Gold: ${player.gold}`, G.CONST.CANVAS_W - pad, pad + 30);
 
+    this.drawSkillBar(ctx, player);
+
     ctx.restore();
+  },
+
+  drawSkillBar(ctx, player) {
+    if (!player.skillOrder || player.skillOrder.length === 0) return;
+
+    const size = 42;
+    const gap = 8;
+    const count = player.skillOrder.length;
+    const totalW = count * size + (count - 1) * gap;
+    let x = (G.CONST.CANVAS_W - totalW) / 2;
+    const y = G.CONST.CANVAS_H - size - 14;
+
+    player.skillOrder.forEach((skillId, i) => {
+      const skillDef = G.skills.getById(skillId);
+      const level = player.skills[skillId] || 1;
+      const cd = player.skillCooldowns[skillId] || 0;
+      const stats = G.skills.getLevelStats(skillId, level);
+      const ready = cd <= 0;
+      const buffActive = !!player.skillBuffs[skillId];
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(x, y, size, size);
+      ctx.strokeStyle = buffActive ? '#ff5fd1' : (ready ? '#6ee08a' : 'rgba(255,255,255,0.25)');
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, size, size);
+
+      ctx.font = '20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = ready ? 1 : 0.4;
+      ctx.fillText(skillDef ? skillDef.icon : '?', x + size / 2, y + size / 2 - 2);
+      ctx.globalAlpha = 1;
+
+      if (!ready) {
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        const pctLeft = cd / stats.cooldown;
+        ctx.fillRect(x, y + size * (1 - pctLeft), size, size * pctLeft);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(cd.toFixed(1), x + size / 2, y + size / 2 - 2);
+      }
+
+      ctx.fillStyle = '#ffd75e';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(`${i + 1}`, x + size / 2, y - 3);
+      ctx.fillStyle = '#9fd3ac';
+      ctx.fillText(`Lv${level}`, x + size / 2, y + size + 11);
+
+      ctx.restore();
+      x += size + gap;
+    });
   }
 };

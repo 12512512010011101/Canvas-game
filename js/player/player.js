@@ -50,6 +50,19 @@ class Player {
     this.awakeningActive = false;
     this.awakeningTimer = 0;
     this._awakenAnomalyBonus = null;
+    this._awakenUndeadBonus = null;
+    this._awakenElfBonus = null;
+    this._awakenDwarfBonus = null;
+    this._awakenBeastBonus = null;
+
+    // --- Skill system (pilihan tiap kelipatan 5 level) ---
+    this.skills = {};            // { skillId: level }
+    this.skillOrder = [];        // urutan didapat = urutan hotkey 1..9
+    this.skillCooldowns = {};    // { skillId: sisa cooldown detik }
+    this.skillBuffs = {};        // buff aktif dari skill (tortoise/courage/hawkeye/elfblessing)
+    this.pendingSkillChoices = 0; // berapa kali modal pilihan skill masih harus ditampilkan
+    this.damageReductionBonus = 0; // dari Tortoise Shield
+    this.debuffImmuneCount = 0;    // >0 = kebal debuff (Elf's Blessing)
   }
 
   hasPassive(raceId) {
@@ -61,6 +74,10 @@ class Player {
     if (this.hasPassive('human')) types.push('human');
     if (this.hasPassive('vampire')) types.push('vampire');
     if (this.hasPassive('demon')) types.push('demon');
+    if (this.hasPassive('undead')) types.push('undead');
+    if (this.hasPassive('elf')) types.push('elf');
+    if (this.hasPassive('dwarf')) types.push('dwarf');
+    if (this.hasPassive('beast')) types.push('beast');
     if (types.length === 0 && this.raceId === 'anomaly') types.push('anomaly');
     return types;
   }
@@ -78,6 +95,7 @@ class Player {
     this.updateAwakening(dt, input);
     this.updateVampireRegen(dt);
     this.updateDemonDomain(dt, enemies, callbacks.onHitEnemy);
+    G.player.skills.update(this, dt, input, enemies, callbacks.onHitEnemy);
   }
 
   pickupArmor(id, setId, pieceType) {
@@ -223,6 +241,40 @@ class Player {
       this.stats.bonus.speed += bonus.speed;
       this.stats.bonus.critChance += bonus.critChance;
     }
+
+    // Undying Will: Defense +50%, plus tidak bisa mati (dicek di takeDamage)
+    if (this.awakeningTypes.includes('undead')) {
+      const bonus = { def: Math.round(this.stats.totalDef * 0.5) };
+      this._awakenUndeadBonus = bonus;
+      this.stats.bonus.def += bonus.def;
+    }
+
+    // Nature's Grace: Attack Speed & Move Speed +30% (efek potion +50% dicek langsung di heal())
+    if (this.awakeningTypes.includes('elf')) {
+      const bonus = { speed: Math.round(this.stats.totalSpeed * 0.3) };
+      this._awakenElfBonus = bonus;
+      this.stats.bonus.speed += bonus.speed;
+      this.attackCooldownMult = (this.attackCooldownMult || 1) / 1.3;
+    }
+
+    // Mountain's Wrath: Defense +40%, Damage +30% (Legendary Drop x2 dicek di chestRNG)
+    if (this.awakeningTypes.includes('dwarf')) {
+      const bonus = {
+        def: Math.round(this.stats.totalDef * 0.4),
+        atk: Math.round(this.stats.totalAtk * 0.3)
+      };
+      this._awakenDwarfBonus = bonus;
+      this.stats.bonus.def += bonus.def;
+      this.stats.bonus.atk += bonus.atk;
+    }
+
+    // Feral Instinct: Damage +50%, Attack Speed +25% (heal on kill dicek di registerKill)
+    if (this.awakeningTypes.includes('beast')) {
+      const bonus = { atk: Math.round(this.stats.totalAtk * 0.5) };
+      this._awakenBeastBonus = bonus;
+      this.stats.bonus.atk += bonus.atk;
+      this.attackCooldownMult = (this.attackCooldownMult || 1) / 1.25;
+    }
   }
 
   deactivateAwakening() {
@@ -237,6 +289,75 @@ class Player {
       this.stats.bonus.critChance -= b.critChance;
       this._awakenAnomalyBonus = null;
     }
+
+    if (this.awakeningTypes.includes('undead') && this._awakenUndeadBonus) {
+      this.stats.bonus.def -= this._awakenUndeadBonus.def;
+      this._awakenUndeadBonus = null;
+    }
+
+    if (this.awakeningTypes.includes('elf') && this._awakenElfBonus) {
+      this.stats.bonus.speed -= this._awakenElfBonus.speed;
+      this.attackCooldownMult *= 1.3;
+      this._awakenElfBonus = null;
+    }
+
+    if (this.awakeningTypes.includes('dwarf') && this._awakenDwarfBonus) {
+      this.stats.bonus.def -= this._awakenDwarfBonus.def;
+      this.stats.bonus.atk -= this._awakenDwarfBonus.atk;
+      this._awakenDwarfBonus = null;
+    }
+
+    if (this.awakeningTypes.includes('beast') && this._awakenBeastBonus) {
+      this.stats.bonus.atk -= this._awakenBeastBonus.atk;
+      this.attackCooldownMult *= 1.25;
+      this._awakenBeastBonus = null;
+    }
+  }
+
+  // --- Buff generik dari skill aktif (Tortoise Shield, Warrior's Courage, Hawk Eye, Elf's Blessing) ---
+  applySkillBuff(id, bonus, duration) {
+    this.removeSkillBuff(id); // refresh kalau di-cast ulang sebelum habis
+    this.skillBuffs[id] = { bonus, timeLeft: duration };
+
+    if (bonus.atk) this.stats.bonus.atk += bonus.atk;
+    if (bonus.def) this.stats.bonus.def += bonus.def;
+    if (bonus.speed) this.stats.bonus.speed += bonus.speed;
+    if (bonus.maxHP) {
+      this.stats.bonus.maxHP += bonus.maxHP;
+      this.stats.hp += bonus.maxHP;
+    }
+    if (bonus.critChance) this.stats.bonus.critChance += bonus.critChance;
+    if (bonus.critMultiplier) this.stats.bonus.critMultiplier += bonus.critMultiplier;
+    if (bonus.damageReduction) this.damageReductionBonus += bonus.damageReduction;
+    if (bonus.debuffImmune) this.debuffImmuneCount += 1;
+  }
+
+  removeSkillBuff(id) {
+    const active = this.skillBuffs[id];
+    if (!active) return;
+    const bonus = active.bonus;
+
+    if (bonus.atk) this.stats.bonus.atk -= bonus.atk;
+    if (bonus.def) this.stats.bonus.def -= bonus.def;
+    if (bonus.speed) this.stats.bonus.speed -= bonus.speed;
+    if (bonus.maxHP) {
+      this.stats.bonus.maxHP -= bonus.maxHP;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
+    }
+    if (bonus.critChance) this.stats.bonus.critChance -= bonus.critChance;
+    if (bonus.critMultiplier) this.stats.bonus.critMultiplier -= bonus.critMultiplier;
+    if (bonus.damageReduction) this.damageReductionBonus -= bonus.damageReduction;
+    if (bonus.debuffImmune) this.debuffImmuneCount = Math.max(0, this.debuffImmuneCount - 1);
+
+    delete this.skillBuffs[id];
+  }
+
+  updateSkillBuffs(dt) {
+    Object.keys(this.skillBuffs).forEach((id) => {
+      const b = this.skillBuffs[id];
+      b.timeLeft -= dt;
+      if (b.timeLeft <= 0) this.removeSkillBuff(id);
+    });
   }
 
   updateRevive(dt) {
@@ -255,12 +376,18 @@ class Player {
 
   registerKill() {
     this.demonKillStacks += 1;
+    if (this.awakeningActive && this.awakeningTypes.includes('beast')) {
+      this.heal(this.stats.totalMaxHP * 0.05);
+    }
   }
 
   heal(amount) {
     let final = amount;
     if (this.hasPassive('undead')) final *= 0.5;
-    if (this.hasPassive('elf')) final *= 1.15;
+    if (this.hasPassive('elf')) {
+      const elfAwakened = this.awakeningActive && this.awakeningTypes.includes('elf');
+      final *= elfAwakened ? 1.5 : 1.15;
+    }
     this.stats.heal(final);
   }
 
@@ -276,6 +403,7 @@ class Player {
   }
 
   applyPoison(dps, duration) {
+    if (this.debuffImmuneCount > 0) return; // lagi kebal debuff (Elf's Blessing)
     const finalDps = this.hasPassive('vampire') ? dps * 2 : dps;
     this.poison.active = true;
     this.poison.dps = Math.max(this.poison.dps, finalDps);
@@ -293,18 +421,38 @@ class Player {
     if (this.invulnTimer > 0) return 0;
 
     let incoming = amount;
+    if (this.damageReductionBonus > 0) {
+      incoming *= (1 - G.utils.math.clamp(this.damageReductionBonus, 0, 0.9));
+    }
     if (this.awakeningActive && this.awakeningTypes.includes('demon')) {
       incoming *= 0.75;
     }
 
-    const dealt = this.stats.takeDamage(incoming);
+    let dealt = this.stats.takeDamage(incoming);
+
+    if (this.awakeningActive && this.awakeningTypes.includes('undead') && this.stats.hp <= 0) {
+      this.stats.hp = 1;
+    }
+
     this.invulnTimer = 0.6;
     this.chargeAwakening(dealt * G.CONST.AWAKENING.chargeFromDamageTaken);
     return dealt;
   }
 
   grantExp(amount) {
-    return this.levelSystem.grantExp(Math.round(amount * this.expMultiplier));
+    const oldLevel = this.levelSystem.level;
+    const gained = this.levelSystem.grantExp(Math.round(amount * this.expMultiplier));
+
+    if (gained > 0) {
+      const interval = G.CONST.SKILL.levelInterval;
+      const oldMilestone = Math.floor(oldLevel / interval);
+      const newMilestone = Math.floor(this.levelSystem.level / interval);
+      if (newMilestone > oldMilestone) {
+        this.pendingSkillChoices += (newMilestone - oldMilestone);
+      }
+    }
+
+    return gained;
   }
 
   addItem(itemId) {

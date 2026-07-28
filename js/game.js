@@ -54,6 +54,7 @@ _setupPlayer() {
     };
     G.ui.statsMenu.init();
     G.chest.chestUI.init();
+    G.ui.skillSelect.init();
     G.ui.pause.init({
       onRestart: () => this.restart(),
       onSave: () => {
@@ -147,7 +148,7 @@ _setupPlayer() {
   }
 
   update(dt) {
-    if (G.ui.pause.paused) return;
+    if (G.ui.pause.paused || G.ui.skillSelect.visible) return;
 
     this.handleGlobalKeys();
 
@@ -191,6 +192,11 @@ _setupPlayer() {
 
     this.camera.follow(this.player.x, this.player.y);
 
+    if (this.player.pendingSkillChoices > 0) {
+      this.openSkillChoice();
+      return;
+    }
+
     if (this.player.stats.isDead()) {
       if (this.player.tryRevive()) {
         this.pushFloatingText(this.player.x, this.player.y - 40, 'REVIVE!', '#c48bf5');
@@ -199,6 +205,22 @@ _setupPlayer() {
         G.ui.gameOver.show(this.waveManager, this.player);
       }
     }
+  }
+
+  openSkillChoice() {
+    const options = G.player.skills.rollChoices(this.player, G.CONST.SKILL.choiceCount);
+    if (options.length === 0) {
+      // semua skill udah maksimal, gak ada lagi yang bisa ditawarkan
+      this.player.pendingSkillChoices = 0;
+      return;
+    }
+    G.ui.skillSelect.show(this.player, options, (skillId) => {
+      G.player.skills.learn(this.player, skillId);
+      this.player.pendingSkillChoices = Math.max(0, this.player.pendingSkillChoices - 1);
+      const def = G.skills.getById(skillId);
+      const level = this.player.skills[skillId];
+      this.pushFloatingText(this.player.x, this.player.y - 40, `${def.icon} ${def.name} Lv${level}!`, '#ffd75e');
+    });
   }
 
   drawBackground() {
@@ -280,6 +302,7 @@ _setupPlayer() {
   restart(raceId, mimicRaceIds) {
     G.ui.pause.hide();
     G.ui.gameOver.hide();
+    G.ui.skillSelect.hide();
     this.raceId = raceId || this.raceId;
     this.mimicRaceIds = mimicRaceIds !== undefined ? mimicRaceIds : this.mimicRaceIds;
 

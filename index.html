@@ -49,6 +49,15 @@
     </div>
   </div>
 
+  <!-- ===== Skill Select Overlay (muncul tiap kelipatan 5 level) ===== -->
+  <div id="skill-select-overlay" class="overlay">
+    <div class="menu-box race-box">
+      <h1>⚡ Pilih Skill (Level <span id="skill-select-level"></span>)</h1>
+      <p class="subtitle">Pilih 1 dari 3 skill di bawah ini</p>
+      <div id="skill-select-grid" class="race-grid"></div>
+    </div>
+  </div>
+
   <!-- ===== Game Over Overlay ===== -->
   <div id="gameover-overlay" class="overlay">
     <div class="menu-box">
@@ -69,7 +78,7 @@
 
   <!-- ===== Game Canvas ===== -->
   <canvas id="game-canvas" tabindex="-1"></canvas>
-  <div id="hud-hint">WASD gerak · Space serang · E buka chest · I inventory · C statistik · F Awakening · Esc pause</div>
+  <div id="hud-hint">WASD gerak · Space serang · E buka chest · I inventory · C statistik · F Awakening · 1-9 Skill · Esc pause</div>
 
   <!-- ===== Mobile Touch Controls (cuma nongol otomatis di device touch) ===== -->
   <div id="touch-joystick-base" class="touch-joystick-base">
@@ -114,6 +123,9 @@
 <script src="js/items/luck.js"></script>
 <script src="js/items/armor.js"></script>
 
+<!-- skills (data + efek, dipakai player) -->
+<script src="js/skills/skillData.js"></script>
+
 <!-- player -->
 <script src="js/player/races.js"></script>
 <script src="js/player/stats.js"></script>
@@ -123,6 +135,7 @@
 <script src="js/player/movement.js"></script>
 <script src="js/player/attack.js"></script>
 <script src="js/player/gun.js"></script>
+<script src="js/player/skills.js"></script>
 <script src="js/player/player.js"></script>
 
 <!-- enemy -->
@@ -148,6 +161,7 @@
 <!-- ui -->
 <script src="js/ui/hud.js"></script>
 <script src="js/ui/raceSelect.js"></script>
+<script src="js/ui/skillSelect.js"></script>
 <script src="js/ui/inventory.js"></script>
 <script src="js/ui/statsMenu.js"></script>
 <script src="js/ui/pause.js"></script>

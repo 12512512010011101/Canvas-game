@@ -20,7 +20,13 @@ class Goblin extends G.enemy.Enemy {
 
   update(dt, player, onPlayerDamage) {
     super.update(dt, player);
-    G.enemy.ai.chase(this, player, this.speed, dt);
+
+    if (this.controlTimer > 0) {
+      // lagi ke-pull / knock up dari skill player, gak bisa gerak/nyerang
+      return;
+    }
+
+    G.enemy.ai.chase(this, player, this.getSpeed(), dt);
     this.tryAttackPlayer(player, onPlayerDamage);
 
     this.frameTimer += dt;

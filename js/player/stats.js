@@ -10,9 +10,10 @@ class Stats {
     this.def = base.def;
     this.speed = base.speed;
     this.critChance = base.critChance;
+    this.critMultiplier = base.critMultiplier || 1.8; // dasar 1.8x, di-buff Hawk Eye
 
     // bonus dari equipment/item, ditambahkan terpisah biar gampang dihitung ulang
-    this.bonus = { atk: 0, def: 0, speed: 0, maxHP: 0, critChance: 0 };
+    this.bonus = { atk: 0, def: 0, speed: 0, maxHP: 0, critChance: 0, critMultiplier: 0 };
   }
 
   get totalAtk() { return this.atk + this.bonus.atk; }
@@ -20,6 +21,7 @@ class Stats {
   get totalSpeed() { return this.speed + this.bonus.speed; }
   get totalMaxHP() { return this.maxHP + this.bonus.maxHP; }
   get totalCrit() { return G.utils.math.clamp(this.critChance + this.bonus.critChance, 0, 0.9); }
+  get totalCritMultiplier() { return this.critMultiplier + this.bonus.critMultiplier; }
 
   applyLevelUp(levelGain) {
     this.maxHP += 8 * levelGain;

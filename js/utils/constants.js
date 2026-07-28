@@ -98,6 +98,16 @@ PLAYER_ROW_MAP: {
     demonBaseRadius: 90,   // radius area bakar Demon (px), dobel pas Domain Expansion aktif
     vampireRadius: 90      // radius serangan area Vampire pas Blood Domain aktif
   },
+
+  // 1 yard = 15px. Dipilih biar konsisten sama skala AoE yang udah ada
+  // (radius Demon/Vampire domain = 90px = 6 yard).
+  YARD: 15,
+
+  SKILL: {
+    levelInterval: 5,   // tiap kelipatan level ini, player dapet 1 pilihan skill baru
+    maxLevel: 5,         // level maksimal per skill
+    choiceCount: 3        // jumlah pilihan yang ditawarkan tiap kali naik level kelipatan 5
+  },
   BULLET_ICON: { x: 220, y: 130, w: 60, h: 60 },
 
   GUN: {
