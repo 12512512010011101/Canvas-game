@@ -7,6 +7,8 @@ build — cukup buka pakai Live Server / `python -m http.server`.
 
 ## Cara jalanin
 
+*Silahkan kunjungi* : https://12512512010011101.github.io/Canvas-game/
+
 Karena browser modern block `fetch()` gambar dari `file://` untuk beberapa kasus, paling aman
 jalanin lewat local server:
 
