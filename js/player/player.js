@@ -95,11 +95,14 @@ class Player {
     this.updateAwakening(dt, input);
     this.updateVampireRegen(dt);
     this.updateDemonDomain(dt, enemies, callbacks.onHitEnemy);
-<<<<<<< HEAD
-    G.player.skills.update(this, dt, input, enemies, callbacks.onHitEnemy);
-=======
-    G.player.skills.update(this, dt, input, enemies, callbacks.onHitEnemy, callbacks.spawnEffect);
->>>>>>> 30eaccd (skill update)
+G.player.skills.update(
+    this,
+    dt,
+    input,
+    enemies,
+    callbacks.onHitEnemy,
+    callbacks.spawnEffect
+);
   }
 
   pickupArmor(id, setId, pieceType) {
