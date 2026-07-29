@@ -27,15 +27,9 @@ function rollDamage(player, base) {
   return { dealt, isCrit };
 }
 
-<<<<<<< HEAD
-// Efek tiap skill. Semua fungsi menerima (player, level, enemies, onHit).
-const EFFECTS = {
-  tornado(player, level, enemies, onHit) {
-=======
 // Efek tiap skill. Semua fungsi menerima (player, level, enemies, onHit, spawnEffect).
 const EFFECTS = {
   tornado(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('tornado', level);
     const radius = s.radiusYard * G.CONST.YARD;
     const baseDmg = player.stats.totalAtk * s.damagePct * player.getArmorAtkMult();
@@ -54,16 +48,6 @@ const EFFECTS = {
       e._pullSpeed = 260;
       e._pendingKnockbackPx = s.knockbackYard * G.CONST.YARD;
     });
-<<<<<<< HEAD
-  },
-
-  tortoise(player, level) {
-    const s = G.skills.getLevelStats('tortoise', level);
-    player.applySkillBuff('tortoise', { damageReduction: s.damageReductionPct }, s.duration);
-  },
-
-  courage(player, level) {
-=======
 
     if (spawnEffect) {
       const life = s.pullDuration + 0.35;
@@ -80,58 +64,39 @@ const EFFECTS = {
   },
 
   courage(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('courage', level);
     player.applySkillBuff('courage', {
       atk: Math.round(player.stats.totalAtk * s.atkPct),
       maxHP: Math.round(player.stats.totalMaxHP * s.hpPct),
       speed: Math.round(player.stats.totalSpeed * s.speedPct)
     }, s.duration);
-<<<<<<< HEAD
-  },
-
-  elfblessing(player, level) {
-=======
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 30, life: 0.5, maxLife: 0.5, color: '#ff8a3d' });
     }
   },
 
   elfblessing(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('elfblessing', level);
     player.applySkillBuff('elfblessing', { debuffImmune: true }, s.duration);
     // Elf's Blessing juga langsung nyembuhin status debuff yang lagi aktif saat di-cast.
     player.curePoison();
-<<<<<<< HEAD
-  },
-
-  hawkeye(player, level) {
-=======
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 24, life: 0.5, maxLife: 0.5, color: '#7cd66b' });
     }
   },
 
   hawkeye(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('hawkeye', level);
     player.applySkillBuff('hawkeye', {
       critChance: s.critChancePct,
       critMultiplier: s.critDamagePct
     }, s.duration);
-<<<<<<< HEAD
-  },
-
-  intimidate(player, level, enemies) {
-=======
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 22, life: 0.4, maxLife: 0.4, color: '#ffd75e' });
     }
   },
 
   intimidate(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('intimidate', level);
     const radius = s.radiusYard * G.CONST.YARD;
 
@@ -141,11 +106,6 @@ const EFFECTS = {
       e.atkDebuffMult = Math.min(e.atkDebuffMult, 1 - s.atkDebuffPct);
       e.atkDebuffTimer = Math.max(e.atkDebuffTimer, s.duration);
     });
-<<<<<<< HEAD
-  },
-
-  earthsplitter(player, level, enemies, onHit) {
-=======
 
     if (spawnEffect) {
       spawnEffect({ type: 'shockwave', x: player.x, y: player.y, radius, life: 0.55, maxLife: 0.55, color: '#a463f2' });
@@ -153,7 +113,6 @@ const EFFECTS = {
   },
 
   earthsplitter(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('earthsplitter', level);
     const range = s.rangeYard * G.CONST.YARD;
     const dir = FACING[player.animator.direction] || FACING.down;
@@ -177,11 +136,6 @@ const EFFECTS = {
       e.slowMult = Math.min(e.slowMult, 1 - s.slowPct);
       e.slowTimer = Math.max(e.slowTimer, s.slowDuration);
     });
-<<<<<<< HEAD
-  },
-
-  shadowdash(player, level, enemies, onHit) {
-=======
 
     if (spawnEffect) {
       spawnEffect({ type: 'cone', x: player.x, y: player.y, dir, range, life: 0.4, maxLife: 0.4, color: '#a9743a' });
@@ -189,7 +143,6 @@ const EFFECTS = {
   },
 
   shadowdash(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('shadowdash', level);
     const dir = FACING[player.animator.direction] || FACING.down;
     const dist = s.dashYard * G.CONST.YARD;
@@ -211,11 +164,6 @@ const EFFECTS = {
     player.x = targetX;
     player.y = targetY;
     player.invulnTimer = Math.max(player.invulnTimer, s.untargetable);
-<<<<<<< HEAD
-  },
-
-  bladedance(player, level, enemies, onHit) {
-=======
 
     if (spawnEffect) {
       spawnEffect({ type: 'trail', x1: startX, y1: startY, x2: targetX, y2: targetY, life: 0.35, maxLife: 0.35, color: '#8b5fe0' });
@@ -223,7 +171,6 @@ const EFFECTS = {
   },
 
   bladedance(player, level, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const s = G.skills.getLevelStats('bladedance', level);
     const radius = s.radiusYard * G.CONST.YARD;
     const armorMult = player.getArmorAtkMult();
@@ -250,13 +197,10 @@ const EFFECTS = {
         e.slowTimer = Math.max(e.slowTimer, s.slowDuration);
       }
     });
-<<<<<<< HEAD
-=======
 
     if (spawnEffect) {
       spawnEffect({ type: 'spin', x: player.x, y: player.y, radius, life: 0.45, maxLife: 0.45, color: '#e6e6e6' });
     }
->>>>>>> 30eaccd (skill update)
   }
 };
 
@@ -285,11 +229,7 @@ G.player.skills = {
     return true;
   },
 
-<<<<<<< HEAD
-  update(player, dt, input, enemies, onHit) {
-=======
   update(player, dt, input, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     // cooldown
     Object.keys(player.skillCooldowns).forEach((id) => {
       if (player.skillCooldowns[id] > 0) {
@@ -304,19 +244,11 @@ G.player.skills = {
     const digitCodes = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'];
     for (let i = 0; i < player.skillOrder.length; i++) {
       if (!input.wasPressed(digitCodes[i])) continue;
-<<<<<<< HEAD
-      this.tryCast(player, player.skillOrder[i], enemies, onHit);
-    }
-  },
-
-  tryCast(player, skillId, enemies, onHit) {
-=======
       this.tryCast(player, player.skillOrder[i], enemies, onHit, spawnEffect);
     }
   },
 
   tryCast(player, skillId, enemies, onHit, spawnEffect) {
->>>>>>> 30eaccd (skill update)
     const cd = player.skillCooldowns[skillId] || 0;
     if (cd > 0) return false;
 
@@ -326,11 +258,7 @@ G.player.skills = {
     const effect = EFFECTS[skillId];
     if (!effect) return false;
 
-<<<<<<< HEAD
-    effect(player, level, enemies, onHit);
-=======
     effect(player, level, enemies, onHit, spawnEffect);
->>>>>>> 30eaccd (skill update)
 
     const stats = G.skills.getLevelStats(skillId, level);
     player.skillCooldowns[skillId] = stats.cooldown;
