@@ -104,7 +104,7 @@ PLAYER_ROW_MAP: {
   YARD: 15,
 
   SKILL: {
-    levelInterval: 5,   // tiap kelipatan level ini, player dapet 1 pilihan skill baru
+    levelInterval: 1,   // tiap kelipatan level ini, player dapet 1 pilihan skill baru
     maxLevel: 5,         // level maksimal per skill
     choiceCount: 3        // jumlah pilihan yang ditawarkan tiap kali naik level kelipatan 5
   },
