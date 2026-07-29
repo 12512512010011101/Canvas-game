@@ -95,7 +95,11 @@ class Player {
     this.updateAwakening(dt, input);
     this.updateVampireRegen(dt);
     this.updateDemonDomain(dt, enemies, callbacks.onHitEnemy);
+<<<<<<< HEAD
     G.player.skills.update(this, dt, input, enemies, callbacks.onHitEnemy);
+=======
+    G.player.skills.update(this, dt, input, enemies, callbacks.onHitEnemy, callbacks.spawnEffect);
+>>>>>>> 30eaccd (skill update)
   }
 
   pickupArmor(id, setId, pieceType) {
@@ -508,6 +512,26 @@ class Player {
       ctx.stroke();
       ctx.restore();
     }
+
+    // --- Aura buff dari skill (Tortoise Shield / Warrior's Courage / Elf's Blessing / Hawk Eye) ---
+    const buffAuras = [
+      { id: 'tortoise', color: '#4aa3ff', dash: false },
+      { id: 'courage', color: '#ff8a3d', dash: false },
+      { id: 'elfblessing', color: '#7cd66b', dash: [3, 3] },
+      { id: 'hawkeye', color: '#ffd75e', dash: [2, 4] }
+    ];
+    buffAuras.forEach((aura, i) => {
+      if (!this.skillBuffs[aura.id]) return;
+      ctx.save();
+      ctx.globalAlpha = 0.4 + Math.sin(performance.now() / 180) * 0.15;
+      ctx.strokeStyle = aura.color;
+      ctx.lineWidth = 2;
+      if (aura.dash) ctx.setLineDash(aura.dash);
+      ctx.beginPath();
+      ctx.arc(screen.x, screen.y, this.radius + 14 + i * 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    });
 
     if (this.invulnTimer > 0 && Math.floor(this.invulnTimer * 20) % 2 === 0) {
       ctx.globalAlpha = 0.4;

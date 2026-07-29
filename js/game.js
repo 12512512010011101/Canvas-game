@@ -18,6 +18,7 @@ class Game {
     this.projectiles = [];
     this.chests = [];
     this.floatingTexts = [];
+    this.skillEffects = [];
 
     this.running = false;
     this.lastTime = 0;
@@ -74,6 +75,10 @@ _setupPlayer() {
 
   spawnProjectile(config) {
     this.projectiles.push({ ...config, life: 4 });
+  }
+
+  spawnSkillEffect(config) {
+    this.skillEffects.push(config);
   }
 
   handleGlobalKeys() {
@@ -154,6 +159,7 @@ _setupPlayer() {
 
     this.player.update(dt, this.input, this.waveManager.enemies, this.worldW, this.worldH, {
       spawnProjectile: (cfg) => this.spawnProjectile(cfg),
+      spawnEffect: (cfg) => this.spawnSkillEffect(cfg),
       onHitEnemy: (enemy, dmg, isCrit) => {
         this.pushFloatingText(enemy.x, enemy.y - 16, `${dmg}${isCrit ? '!' : ''}`, isCrit ? '#f39c12' : '#fff');
         if (enemy.dead) {
@@ -189,6 +195,9 @@ _setupPlayer() {
       f.life -= dt;
     });
     this.floatingTexts = this.floatingTexts.filter((f) => f.life > 0);
+
+    this.skillEffects.forEach((e) => { e.life -= dt; });
+    this.skillEffects = this.skillEffects.filter((e) => e.life > 0);
 
     this.camera.follow(this.player.x, this.player.y);
 
@@ -249,6 +258,8 @@ _setupPlayer() {
     const drawables = [...this.waveManager.enemies, this.player].sort((a, b) => a.y - b.y);
     drawables.forEach((d) => d.draw(ctx, this.camera));
 
+    this.drawSkillEffects(ctx);
+
     this.projectiles.forEach((p) => {
       const s = this.camera.worldToScreen(p.x, p.y);
       if (p.owner === 'player' && p.sprite && this.assets[p.sprite]) {
@@ -279,6 +290,86 @@ _setupPlayer() {
     });
 
     G.ui.hud.draw(ctx, this.player, this.waveManager);
+  }
+
+  drawSkillEffects(ctx) {
+    this.skillEffects.forEach((e) => {
+      const t = G.utils.math.clamp(e.life / e.maxLife, 0, 1); // 1 = baru muncul, 0 = mau hilang
+      const s = this.camera.worldToScreen(e.x !== undefined ? e.x : e.x1, e.y !== undefined ? e.y : e.y1);
+
+      ctx.save();
+
+      if (e.type === 'tornado') {
+        // 3 cincin putus-putus berputar, radiusnya menyusut (visualisasi tarikan angin)
+        ctx.globalAlpha = 0.55 * t;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 2;
+        const shrink = e.radius * (0.35 + 0.65 * t);
+        for (let i = 0; i < 3; i++) {
+          const spin = (performance.now() / 150) * (i % 2 === 0 ? 1 : -1) + i;
+          ctx.setLineDash([10, 8]);
+          ctx.lineDashOffset = spin * 10;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, shrink * (1 - i * 0.22), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (e.type === 'burst_ring') {
+        // ring melebar & memudar, dipakai buat buff self-cast (Tortoise/Courage/Elf/Hawk Eye)
+        ctx.globalAlpha = t;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, e.radius * (1 - t) + e.radius * 0.5, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (e.type === 'shockwave') {
+        // ring melebar dari 0 sampai radius penuh (Intimidate)
+        ctx.globalAlpha = 0.7 * t;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, e.radius * (1 - t), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.15 * t;
+        ctx.fillStyle = e.color;
+        ctx.fill();
+      } else if (e.type === 'cone') {
+        // wedge/fan di arah hadap player (Earth Splitter)
+        const baseAngle = Math.atan2(e.dir.y, e.dir.x);
+        const spread = Math.PI * 0.45;
+        ctx.globalAlpha = 0.4 * t;
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.arc(s.x, s.y, e.range, baseAngle - spread, baseAngle + spread);
+        ctx.closePath();
+        ctx.fill();
+      } else if (e.type === 'trail') {
+        // afterimage garis dari titik awal ke titik akhir dash (Shadow Dash)
+        const s2 = this.camera.worldToScreen(e.x2, e.y2);
+        ctx.globalAlpha = 0.7 * t;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 10 * t + 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s2.x, s2.y);
+        ctx.stroke();
+      } else if (e.type === 'spin') {
+        // beberapa bilah berputar cepat di sekitar player (Blade Dance)
+        ctx.globalAlpha = 0.8 * t;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 3;
+        const spin = performance.now() / 40;
+        for (let i = 0; i < 4; i++) {
+          const ang = spin + (i * Math.PI) / 2;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, e.radius, ang, ang + Math.PI * 0.4);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    });
   }
 
   loop(timestamp) {
@@ -312,6 +403,7 @@ _setupPlayer() {
     this.chests = [];
     this.projectiles = [];
     this.floatingTexts = [];
+    this.skillEffects = [];
     this.running = true;
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.loop(t));
