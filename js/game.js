@@ -290,6 +290,8 @@ _setupPlayer() {
     });
 
     G.ui.hud.draw(ctx, this.player, this.waveManager);
+    G.core.touchControls.syncSkillBar(this.player);
+  
   }
 
   drawSkillEffects(ctx) {

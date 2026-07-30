@@ -5,7 +5,7 @@
   border: 3px solid #2f4a33;
   border-radius: 6px;
   image-rendering: pixelated;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   max-width: 96vw;
   max-height: 90vh;
 }
@@ -20,18 +20,21 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 12px;
-  color: rgba(255,255,255,0.6);
-  background: rgba(0,0,0,0.4);
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.45);
   padding: 6px 14px;
   border-radius: 20px;
   letter-spacing: 0.3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 #hud-hint.visible {
   display: block;
 }
+
 .touch-joystick-base,
 .touch-button-row,
 .touch-menu-row,
+.touch-skill-row,
 .touch-btn-awakening {
   display: none;
 }
@@ -44,8 +47,9 @@ body.touch-device .touch-joystick-base {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
   border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35);
   touch-action: none;
   z-index: 25;
 }
@@ -58,8 +62,9 @@ body.touch-device .touch-joystick-base {
   margin-left: -22px;
   margin-top: -22px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.28));
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* Grup aksi utama: E (interact) & Esc (pause), dekat jempol kanan bawah */
@@ -75,8 +80,8 @@ body.touch-device .touch-button-row {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  border: 2px solid rgba(255, 255, 255, 0.28);
   color: #fff;
   font-weight: 700;
   font-size: 13px;
@@ -87,10 +92,13 @@ body.touch-device .touch-button-row {
   user-select: none;
   -webkit-user-select: none;
   padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: background 0.1s ease, border-color 0.1s ease, transform 0.08s ease;
 }
 .touch-btn.active {
-  background: rgba(255, 255, 255, 0.32);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.18));
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: scale(0.93);
 }
 
 /* Grup menu: Inventory (I) & Statistik (C), dipindah jauh ke pojok atas
@@ -107,7 +115,7 @@ body.touch-device .touch-menu-row {
   width: 42px;
   height: 42px;
   font-size: 12px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* Tombol Awakening (F): berdiri sendiri, lebih besar, warna beda,
@@ -127,6 +135,89 @@ body.touch-device .touch-btn-awakening {
 .touch-btn-awakening.active {
   background: radial-gradient(circle at 35% 30%, rgba(255, 209, 102, 0.85), rgba(255, 170, 0, 0.4));
   border-color: rgba(255, 224, 130, 0.9);
+}
+
+/* Skill hotbar (1-9): baris tombol yang dibuat otomatis lewat JS, digeser
+   ke atas biar gak numpuk sama joystick / tombol E-Esc di bawahnya */
+body.touch-device .touch-skill-row {
+  display: flex;
+  position: fixed;
+  left: 50%;
+  bottom: 140px;
+  transform: translateX(-50%);
+  gap: 8px;
+  max-width: 94vw;
+  overflow-x: auto;
+  padding: 4px 2px;
+  z-index: 25;
+}
+.touch-skill-btn {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(20, 32, 26, 0.9), rgba(10, 16, 12, 0.9));
+  border: 2px solid rgba(110, 224, 138, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+}
+.touch-skill-btn.active {
+  transform: scale(0.92);
+}
+.touch-skill-btn.buff-active {
+  border-color: var(--pink, #ff5fd1);
+  box-shadow: 0 0 12px rgba(255, 95, 209, 0.45);
+}
+.touch-skill-icon {
+  font-size: 18px;
+  z-index: 2;
+  line-height: 1;
+}
+.touch-skill-btn.on-cooldown .touch-skill-icon {
+  opacity: 0.35;
+}
+.touch-skill-key {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--gold, #ffd75e);
+  z-index: 3;
+}
+.touch-skill-lv {
+  position: absolute;
+  bottom: 1px;
+  right: 3px;
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--accent, #6ee08a);
+  z-index: 3;
+}
+.touch-skill-cd {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0%;
+  background: rgba(0, 0, 0, 0.68);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  z-index: 1;
+  transition: height 0.1s linear;
 }
 
 body.touch-device #hud-hint {

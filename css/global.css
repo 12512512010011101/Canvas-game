@@ -1,4 +1,32 @@
 /* css/global.css */
+:root {
+  --bg: #0b100c;
+  --panel-bg: #14201a;
+  --panel-bg-soft: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --text: #eee;
+  --text-dim: #9aa79e;
+  --text-faint: #6f7c73;
+
+  --accent: #6ee08a;
+  --accent-strong: #45c46b;
+  --accent-dark: #2d8f4e;
+  --gold: #ffd75e;
+  --gold-strong: #ffce6b;
+  --danger: #e08a8a;
+  --blue: #4aa3ff;
+  --purple: #c46bf0;
+  --pink: #ff5fd1;
+  --orange: #ff8a3d;
+
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 7px;
+
+  --shadow-soft: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,9 +35,9 @@
 
 html, body {
   height: 100%;
-  background: #0d1410;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  color: #eee;
+  background: radial-gradient(ellipse at top, #16241a 0%, var(--bg) 65%);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
   overflow: hidden;
 }
 
@@ -30,25 +58,53 @@ button {
   cursor: pointer;
   font-family: inherit;
   border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  padding: 11px 22px;
   font-size: 14px;
-  font-weight: 600;
-  background: #3aa65a;
-  color: #fff;
-  transition: transform 0.1s ease, background 0.15s ease;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #08130b;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 6px 16px rgba(69, 196, 107, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
 }
 button:hover {
-  background: #45c46b;
+  filter: brightness(1.08);
   transform: translateY(-1px);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25), 0 8px 20px rgba(69, 196, 107, 0.35);
+}
+button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25), 0 4px 10px rgba(69, 196, 107, 0.25);
 }
 button:disabled {
-  background: #555;
+  background: #3a423d;
+  color: #8a938e;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+/* scrollbar seragam di semua panel/overlay yang bisa di-scroll */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 224, 138, 0.4) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(110, 224, 138, 0.35);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 224, 138, 0.55);
 }
 
 .rarity-common { color: #cfd4d8; }
-.rarity-rare { color: #4aa3ff; }
-.rarity-epic { color: #c46bf0; }
-.rarity-legendary { color: #ffb545; }
+.rarity-rare { color: var(--blue); }
+.rarity-epic { color: var(--purple); }
+.rarity-legendary { color: var(--gold-strong); }
