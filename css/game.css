@@ -203,6 +203,15 @@ body.touch-device .touch-skill-row {
   color: var(--accent, #6ee08a);
   z-index: 3;
 }
+.touch-skill-stack {
+  position: absolute;
+  bottom: 1px;
+  left: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--pink, #ff5fd1);
+  z-index: 3;
+}
 .touch-skill-cd {
   position: absolute;
   left: 0;

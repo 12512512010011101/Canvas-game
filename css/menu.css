@@ -135,6 +135,15 @@
   margin-bottom: 8px;
   font-weight: 700;
 }
+.race-card-desc {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  border-left: 2px solid var(--border);
+  padding-left: 8px;
+}
 .race-card-stats {
   font-size: 11px;
   color: #9fd3ac;

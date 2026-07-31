@@ -60,8 +60,9 @@ G.player.RACES = [
     awakeningText: 'Blood Domain: serangan jadi area di sekitar pemain. Regen berubah jadi dari damage diterima: 2 HP/detik (+0.05% MaxHP/level), maksimal 15% Max HP/detik.'
   },
   {
-    id: 'anomaly', name: 'Anomaly', emoji: '🌀',
+  id: 'anomaly', name: 'Jack', emoji: '🌀',
     baseDamage: 2, hpStar: 3, defStar: 3, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 3,
+    description: '"Discrimination disgusted him. He grew weary of a system that sought to control him. So he took control of himself, and in doing so, gained the ability to wield every branch of knowledge."',
     passiveText: 'Semua stat +15%.',
     awakeningText: 'Pilih 2 race lain untuk copy passive-nya sekaligus'
   }

@@ -138,6 +138,14 @@ G.ui.hud = {
       ctx.fillText(`${i + 1}`, x + size / 2, y - 3);
       ctx.fillStyle = '#9fd3ac';
       ctx.fillText(`Lv${level}`, x + size / 2, y + size + 11);
+      const stackCount = player.skillBuffs[skillId] ? player.skillBuffs[skillId].stacks : 0;
+      if (stackCount > 1) {
+        ctx.fillStyle = '#ff5fd1';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`x${stackCount}`, x + 2, y + size - 3);
+        ctx.textAlign = 'center';
+      }
 
       ctx.restore();
       x += size + gap;

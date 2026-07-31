@@ -127,10 +127,11 @@ G.core.touchControls = {
       const cd = player.skillCooldowns[skillId] || 0;
       const stats = G.skills.getLevelStats(skillId, level);
       const ready = cd <= 0;
-      const buffActive = !!player.skillBuffs[skillId];
+      const buff = player.skillBuffs[skillId];
 
       ref.icon.textContent = def ? def.icon : '?';
       ref.lv.textContent = `Lv${level}`;
+      ref.stack.textContent = (buff && buff.stacks > 1) ? `x${buff.stacks}` : '';
 
       if (ready) {
         ref.cd.style.height = '0%';
@@ -143,7 +144,7 @@ G.core.touchControls = {
         ref.btn.classList.add('on-cooldown');
       }
 
-      ref.btn.classList.toggle('buff-active', buffActive);
+      ref.btn.classList.toggle('buff-active', !!buff);
     });
   },
 
@@ -164,6 +165,9 @@ G.core.touchControls = {
       const lv = document.createElement('span');
       lv.className = 'touch-skill-lv';
 
+      const stack = document.createElement('span');
+      stack.className = 'touch-skill-stack';
+
       const cd = document.createElement('span');
       cd.className = 'touch-skill-cd';
 
@@ -171,6 +175,7 @@ G.core.touchControls = {
       btn.appendChild(icon);
       btn.appendChild(key);
       btn.appendChild(lv);
+      btn.appendChild(stack);
 
       btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
@@ -184,7 +189,7 @@ G.core.touchControls = {
       });
 
       this.skillRowEl.appendChild(btn);
-      return { btn, icon, lv, cd };
+      return { btn, icon, lv, cd, stack };
     });
   }
 };

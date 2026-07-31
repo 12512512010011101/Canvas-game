@@ -52,7 +52,9 @@ G.ui.raceSelect = {
     const pickedLabel = pickedSoFar.length
       ? ` (sudah pilih: ${pickedSoFar.join(', ')})`
       : '';
-    this.titleEl.textContent = `🌀 Anomaly — Pilih ${remaining} Passive lagi yang Mau Di-copy${pickedLabel}`;
+    const self = G.player.RACES.find((r) => r.id === 'anomaly');
+    const selfLabel = self ? `${self.emoji} ${self.name}` : '🌀 Jack';
+    this.titleEl.textContent = `${selfLabel} — Pilih ${remaining} Passive lagi yang Mau Di-copy${pickedLabel}`;
 
     const options = G.player.RACES.filter((r) => r.id !== 'anomaly' && !pickedSoFar.includes(r.id));
     this.gridEl.innerHTML = options.map((r) => this.cardHtml(r, true)).join('');
@@ -70,6 +72,7 @@ G.ui.raceSelect = {
     return `
       <button class="race-card" data-race="${race.id}">
         <div class="race-card-head">${race.emoji} <strong>${race.name}</strong></div>
+        ${race.description ? `<div class="race-card-desc">${race.description}</div>` : ''}
         <div class="race-card-stats">
           <div>DMG ${this.starString(this.dmgStars(race.baseDamage))} <span class="dmg-num">(${race.baseDamage})</span></div>
           <div>HP ${this.starString(race.hpStar)}</div>

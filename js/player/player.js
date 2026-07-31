@@ -322,40 +322,83 @@ G.player.skills.update(
   }
 
   // --- Buff generik dari skill aktif (Tortoise Shield, Warrior's Courage, Hawk Eye, Elf's Blessing) ---
-  applySkillBuff(id, bonus, duration) {
-    this.removeSkillBuff(id); // refresh kalau di-cast ulang sebelum habis
-    this.skillBuffs[id] = { bonus, timeLeft: duration };
+ // --- Buff generik dari skill aktif (Tortoise Shield, Warrior's Courage, Hawk Eye, Elf's Blessing) ---
+  // pctBonus = { atkPct, hpPct, speedPct, damageReductionPct, critChancePct, critDamagePct, debuffImmune }
+  // opts.maxStacks & opts.stackGrowth: kalau skill di-cast ulang SEBELUM buff lama habis,
+  // durasinya di-reset DAN besaran efeknya naik (growth) dari nilai stack sebelumnya,
+  // numpuk sampai maxStacks kali. Default maxStacks 1 = gak stacking, cuma refresh durasi.
+  applySkillBuff(id, pctBonus, duration, opts = {}) {
+    const maxStacks = opts.maxStacks || 1;
+    const growth = opts.stackGrowth || 0;
 
-    if (bonus.atk) this.stats.bonus.atk += bonus.atk;
-    if (bonus.def) this.stats.bonus.def += bonus.def;
-    if (bonus.speed) this.stats.bonus.speed += bonus.speed;
-    if (bonus.maxHP) {
-      this.stats.bonus.maxHP += bonus.maxHP;
-      this.stats.hp += bonus.maxHP;
+    const existing = this.skillBuffs[id];
+    let stacks = 1;
+
+    if (existing) {
+      this._revertBuffFlatBonus(existing.flatBonus);
+      stacks = Math.min(maxStacks, existing.stacks + 1);
     }
-    if (bonus.critChance) this.stats.bonus.critChance += bonus.critChance;
-    if (bonus.critMultiplier) this.stats.bonus.critMultiplier += bonus.critMultiplier;
-    if (bonus.damageReduction) this.damageReductionBonus += bonus.damageReduction;
-    if (bonus.debuffImmune) this.debuffImmuneCount += 1;
+
+    // stack ke-N = nilai awal * (1 + growth)^(N-1). Contoh growth 20%: 20% -> 24% -> 28.8% -> ...
+    const growFactor = growth > 0 ? Math.pow(1 + growth, stacks - 1) : 1;
+    const scaledPct = {};
+    Object.keys(pctBonus).forEach((k) => {
+      scaledPct[k] = typeof pctBonus[k] === 'number' ? pctBonus[k] * growFactor : pctBonus[k];
+    });
+
+    const flatBonus = this._pctBuffToFlat(scaledPct);
+    this._applyBuffFlatBonus(flatBonus);
+
+    this.skillBuffs[id] = { flatBonus, pct: scaledPct, stacks, maxStacks, growth, timeLeft: duration };
+  }
+
+  // Konversi persen skill (relatif ke stat total SAAT INI, di luar kontribusi buff ini sendiri
+  // karena udah di-revert dulu sebelum dipanggil) jadi angka flat yang ditambahkan ke stats.
+  _pctBuffToFlat(pct) {
+    const flat = {};
+    if (pct.atkPct) flat.atk = Math.round(this.stats.totalAtk * pct.atkPct);
+    if (pct.hpPct) flat.maxHP = Math.round(this.stats.totalMaxHP * pct.hpPct);
+    if (pct.speedPct) flat.speed = Math.round(this.stats.totalSpeed * pct.speedPct);
+    if (pct.damageReductionPct) flat.damageReduction = pct.damageReductionPct;
+    if (pct.critChancePct) flat.critChance = pct.critChancePct;
+    if (pct.critDamagePct) flat.critMultiplier = pct.critDamagePct;
+    if (pct.debuffImmune) flat.debuffImmune = true;
+    return flat;
+  }
+
+  _applyBuffFlatBonus(flat) {
+    if (flat.atk) this.stats.bonus.atk += flat.atk;
+    if (flat.def) this.stats.bonus.def += flat.def;
+    if (flat.speed) this.stats.bonus.speed += flat.speed;
+    if (flat.maxHP) {
+      this.stats.bonus.maxHP += flat.maxHP;
+      this.stats.hp += flat.maxHP;
+    }
+    if (flat.critChance) this.stats.bonus.critChance += flat.critChance;
+    if (flat.critMultiplier) this.stats.bonus.critMultiplier += flat.critMultiplier;
+    if (flat.damageReduction) this.damageReductionBonus += flat.damageReduction;
+    if (flat.debuffImmune) this.debuffImmuneCount += 1;
+  }
+
+  _revertBuffFlatBonus(flat) {
+    if (!flat) return;
+    if (flat.atk) this.stats.bonus.atk -= flat.atk;
+    if (flat.def) this.stats.bonus.def -= flat.def;
+    if (flat.speed) this.stats.bonus.speed -= flat.speed;
+    if (flat.maxHP) {
+      this.stats.bonus.maxHP -= flat.maxHP;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
+    }
+    if (flat.critChance) this.stats.bonus.critChance -= flat.critChance;
+    if (flat.critMultiplier) this.stats.bonus.critMultiplier -= flat.critMultiplier;
+    if (flat.damageReduction) this.damageReductionBonus -= flat.damageReduction;
+    if (flat.debuffImmune) this.debuffImmuneCount = Math.max(0, this.debuffImmuneCount - 1);
   }
 
   removeSkillBuff(id) {
     const active = this.skillBuffs[id];
     if (!active) return;
-    const bonus = active.bonus;
-
-    if (bonus.atk) this.stats.bonus.atk -= bonus.atk;
-    if (bonus.def) this.stats.bonus.def -= bonus.def;
-    if (bonus.speed) this.stats.bonus.speed -= bonus.speed;
-    if (bonus.maxHP) {
-      this.stats.bonus.maxHP -= bonus.maxHP;
-      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
-    }
-    if (bonus.critChance) this.stats.bonus.critChance -= bonus.critChance;
-    if (bonus.critMultiplier) this.stats.bonus.critMultiplier -= bonus.critMultiplier;
-    if (bonus.damageReduction) this.damageReductionBonus -= bonus.damageReduction;
-    if (bonus.debuffImmune) this.debuffImmuneCount = Math.max(0, this.debuffImmuneCount - 1);
-
+    this._revertBuffFlatBonus(active.flatBonus);
     delete this.skillBuffs[id];
   }
 

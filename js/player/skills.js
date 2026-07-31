@@ -57,7 +57,9 @@ const EFFECTS = {
 
   tortoise(player, level, enemies, onHit, spawnEffect) {
     const s = G.skills.getLevelStats('tortoise', level);
-    player.applySkillBuff('tortoise', { damageReduction: s.damageReductionPct }, s.duration);
+    player.applySkillBuff('tortoise', { damageReductionPct: s.damageReductionPct }, s.duration, {
+      maxStacks: 15, stackGrowth: 0.20
+    });
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 26, life: 0.4, maxLife: 0.4, color: '#4aa3ff' });
     }
@@ -66,10 +68,10 @@ const EFFECTS = {
   courage(player, level, enemies, onHit, spawnEffect) {
     const s = G.skills.getLevelStats('courage', level);
     player.applySkillBuff('courage', {
-      atk: Math.round(player.stats.totalAtk * s.atkPct),
-      maxHP: Math.round(player.stats.totalMaxHP * s.hpPct),
-      speed: Math.round(player.stats.totalSpeed * s.speedPct)
-    }, s.duration);
+      atkPct: s.atkPct,
+      hpPct: s.hpPct,
+      speedPct: s.speedPct
+    }, s.duration, { maxStacks: 15, stackGrowth: 0.20 });
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 30, life: 0.5, maxLife: 0.5, color: '#ff8a3d' });
     }
@@ -77,7 +79,8 @@ const EFFECTS = {
 
   elfblessing(player, level, enemies, onHit, spawnEffect) {
     const s = G.skills.getLevelStats('elfblessing', level);
-    player.applySkillBuff('elfblessing', { debuffImmune: true }, s.duration);
+    // Boolean (kebal debuff), gak relevan buat di-stack — cast ulang cuma refresh durasi.
+    player.applySkillBuff('elfblessing', { debuffImmune: true }, s.duration, { maxStacks: 1 });
     // Elf's Blessing juga langsung nyembuhin status debuff yang lagi aktif saat di-cast.
     player.curePoison();
     if (spawnEffect) {
@@ -88,9 +91,9 @@ const EFFECTS = {
   hawkeye(player, level, enemies, onHit, spawnEffect) {
     const s = G.skills.getLevelStats('hawkeye', level);
     player.applySkillBuff('hawkeye', {
-      critChance: s.critChancePct,
-      critMultiplier: s.critDamagePct
-    }, s.duration);
+      critChancePct: s.critChancePct,
+      critDamagePct: s.critDamagePct
+    }, s.duration, { maxStacks: 15, stackGrowth: 0.20 });
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 22, life: 0.4, maxLife: 0.4, color: '#ffd75e' });
     }
