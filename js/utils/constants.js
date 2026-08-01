@@ -51,6 +51,18 @@ PLAYER_ROW_MAP: {
     walkFrames: [0, 1, 2, 3, 5, 7, 8, 9, 10, 12], // kolom yang isinya frame valid di walkRow
     drawHeight: 56
   },
+  // assets/enemy/archer/archer.png -> sprite baru buat Archer (sebelumnya cuma lingkaran
+  // ungu polos). Di-crop manual dari asset marksman/archer.png (sheet aslinya 1600x4500,
+  // grid 16 kolom x 15 baris @ 100x300/cell, tapi banyak cell kosong). Cuma 2 frame pose
+  // yang dipakai (kotak archer siap panah), disusun jadi 1 file kecil 198x203 (2 kolom).
+  ARCHER_SHEET: {
+    frameW: 99,
+    frameH: 203,
+    cols: 2,
+    rows: 1,
+    walkRow: 0,
+    drawHeight: 52
+  },
 
   // --- Icon sheet (assets/items/icons_sheet.png) ---
   // Berisi weapon icons (kiri, grid 16x16) & item icons (kanan, grid lebih besar ~16-24px).
@@ -88,11 +100,20 @@ PLAYER_ROW_MAP: {
   },
 
   STORAGE_KEY: 'canvas_game_save_v1',
+  // Awakening sekarang TOGGLE, bukan durasi tetap:
+  // - Tekan F (meter penuh) -> aktif SELAMANYA sampai di-nonaktifkan manual.
+  // - Tekan F lagi (lagi aktif) -> nonaktif, dan alih-alih kena cooldown,
+  //   pemain dapet stack buff "Awakening Echo" (echoBasePct, numpuk sampai
+  //   echoMaxStacks kali, tiap stack naik echoStackGrowth dari sebelumnya —
+  //   pola yang sama persis kayak Tortoise/Courage/Hawk Eye).
   AWAKENING: {
     max: 100,                    // meter penuh di angka ini
-    duration: 6,                 // detik awakening aktif
     chargeFromDamageDealt: 0.3,  // tiap 1 damage yang DIBERIKAN, meter naik segini
-    chargeFromDamageTaken: 0.3,   // tiap 1 damage yang DITERIMA, meter naik segini (lebih cepat, lebih beresiko)
+    chargeFromDamageTaken: 0.3,  // tiap 1 damage yang DITERIMA, meter naik segini (lebih cepat, lebih beresiko)
+    echoDuration: 10,            // detik durasi tiap stack Awakening Echo
+    echoBasePct: 0.05,           // ATK/Max HP/Speed +5% dasar (stack 1) sebelum growth
+    echoMaxStacks: 15,
+    echoStackGrowth: 0.20
   },
   DOMAIN: {
     demonBaseRadius: 90,   // radius area bakar Demon (px), dobel pas Domain Expansion aktif

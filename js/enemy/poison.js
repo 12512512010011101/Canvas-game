@@ -5,15 +5,15 @@ G.enemy = G.enemy || {};
 class PoisonEnemy extends G.enemy.Enemy {
   constructor(x, y, hpMult = 2, dmgMult = 1) {
     super(x, y, {
-      radius: 11,
-      speed: 80,
-      hp: Math.round(30 * hpMult),
-      damage: Math.round(5 * dmgMult), // damage kontak langsung dibikin kecil, racunnya yang berbahaya
-      expReward: 5,
-      color: '#e67e22', // oranye, sesuai request
-      type: 'poison',
-      attackCooldown: 1
-    });
+  radius: 11,
+  speed: 80,
+  hp: Math.round(36 * hpMult),   // sedikit lebih tebal (dulu 30)
+  damage: Math.round(6 * dmgMult), // dikit lebih sakit (dulu 5)
+  expReward: 5,
+  color: '#e67e22',
+  type: 'poison',
+  attackCooldown: 1
+});
     this.poisonDamage = Math.max(3, Math.round(2 * dmgMult));
     this.poisonDuration = 10; // detik racun aktif di player
     this.frameIndex = 0;

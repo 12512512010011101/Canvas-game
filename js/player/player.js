@@ -218,35 +218,42 @@ G.player.skills.update(
   }
 
   updateAwakening(dt, input) {
-    if (input.wasPressed('KeyF') && this.canActivateAwakening()) {
-      this.activateAwakening();
+    if (input.wasPressed('KeyF')) {
+      if (this.awakeningActive) {
+        // State 2: tekan lagi -> nonaktif manual (gak ada cd, tapi dapet stack buff Echo)
+        this.deactivateAwakening();
+      } else if (this.canActivateAwakening()) {
+        // State 1: tekan pertama -> aktif SELAMANYA sampai ditekan lagi
+        this.activateAwakening();
+      }
     }
     if (this.awakeningActive) {
-      this.awakeningTimer -= dt;
-      if (this.awakeningTimer <= 0) this.deactivateAwakening();
+      this.awakeningTimer += dt; // cuma buat nampilin "sudah berapa lama aktif" di HUD
     }
   }
 
   activateAwakening() {
     this.awakeningActive = true;
-    this.awakeningTimer = G.CONST.AWAKENING.duration;
+    this.awakeningTimer = 0;
     this.awakeningMeter = 0;
 
     if (this.awakeningTypes.includes('demon')) {
       this._primordialStacks = 0;
     }
     if (this.awakeningTypes.includes('anomaly')) {
+      // Overclock: semua stats +50% selama aktif (dulu: copy passive 2 race lain)
       const bonus = {
-        atk: Math.round(this.stats.totalAtk * 0.3),
-        def: Math.round(this.stats.totalDef * 0.3),
-        speed: Math.round(this.stats.totalSpeed * 0.3),
-        critChance: 0.1
+        atk: Math.round(this.stats.totalAtk * 0.5),
+        def: Math.round(this.stats.totalDef * 0.5),
+        speed: Math.round(this.stats.totalSpeed * 0.5),
+        maxHP: Math.round(this.stats.totalMaxHP * 0.5)
       };
       this._awakenAnomalyBonus = bonus;
       this.stats.bonus.atk += bonus.atk;
       this.stats.bonus.def += bonus.def;
       this.stats.bonus.speed += bonus.speed;
-      this.stats.bonus.critChance += bonus.critChance;
+      this.stats.bonus.maxHP += bonus.maxHP;
+      this.stats.hp += bonus.maxHP; // HP current ikut naik, bukan cuma cap-nya
     }
 
     // Undying Will: Defense +50%, plus tidak bisa mati (dicek di takeDamage)
@@ -293,7 +300,8 @@ G.player.skills.update(
       this.stats.bonus.atk -= b.atk;
       this.stats.bonus.def -= b.def;
       this.stats.bonus.speed -= b.speed;
-      this.stats.bonus.critChance -= b.critChance;
+      this.stats.bonus.maxHP -= b.maxHP;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
       this._awakenAnomalyBonus = null;
     }
 
@@ -319,6 +327,16 @@ G.player.skills.update(
       this.attackCooldownMult *= 1.25;
       this._awakenBeastBonus = null;
     }
+
+    // Alih-alih kena cooldown pas dinonaktifkan manual, pemain dapet stack buff
+    // "Awakening Echo" — numpuk sampai 15x, tiap stack naik 20% dari sebelumnya
+    // (pola sama kayak Tortoise Shield / Warrior's Courage / Hawk Eye).
+    const echo = G.CONST.AWAKENING;
+    this.applySkillBuff('awakeningEcho', {
+      atkPct: echo.echoBasePct,
+      hpPct: echo.echoBasePct,
+      speedPct: echo.echoBasePct
+    }, echo.echoDuration, { maxStacks: echo.echoMaxStacks, stackGrowth: echo.echoStackGrowth });
   }
 
   // --- Buff generik dari skill aktif (Tortoise Shield, Warrior's Courage, Hawk Eye, Elf's Blessing) ---
@@ -564,7 +582,8 @@ G.player.skills.update(
       { id: 'tortoise', color: '#4aa3ff', dash: false },
       { id: 'courage', color: '#ff8a3d', dash: false },
       { id: 'elfblessing', color: '#7cd66b', dash: [3, 3] },
-      { id: 'hawkeye', color: '#ffd75e', dash: [2, 4] }
+      { id: 'hawkeye', color: '#ffd75e', dash: [2, 4] },
+      { id: 'awakeningEcho', color: '#ff5fd1', dash: [2, 2] }
     ];
     buffAuras.forEach((aura, i) => {
       if (!this.skillBuffs[aura.id]) return;

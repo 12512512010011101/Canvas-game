@@ -5,16 +5,16 @@ G.enemy = G.enemy || {};
 class Boss extends G.enemy.Enemy {
   constructor(x, y, waveNumber) {
     const mult = 1 + waveNumber * 0.15;
-    super(x, y, {
-      radius: 22,
-      speed: 55,
-      hp: Math.round(1400 * mult),
-      damage: Math.round(14 * mult),
-      expReward: 120,
-      color: '#d35400',
-      type: 'boss',
-      attackCooldown: 1.2
-    });
+super(x, y, {
+  radius: 22,
+  speed: 55,
+  hp: Math.round(1650 * mult),   // sedikit lebih tebal (dulu 1400)
+  damage: Math.round(16 * mult), // dikit lebih sakit (dulu 14)
+  expReward: 120,
+  color: '#d35400',
+  type: 'boss',
+  attackCooldown: 1.2
+});
     this.phaseTimer = 0;
     this.slamCooldown = 0;
   }
