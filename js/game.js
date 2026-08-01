@@ -31,7 +31,7 @@ class Game {
 _setupPlayer() {
     this.player = new G.player.Player(this.worldW / 2, this.worldH / 2, this.assets.playerSheet, this.raceId, this.mimicRaceIds);
     G.items.iconImage = this.assets.iconsSheet;
-    G.enemy.sprites = { goblin: this.assets.goblinSheet, witch: this.assets.witchSheet };
+    G.enemy.sprites = { goblin: this.assets.goblinSheet, witch: this.assets.witchSheet, archer: this.assets.archerSheet };
     const starter = G.items.getById('sword_iron');
     starter.applyTo(this.player);
     this.player.addItem(starter.id);

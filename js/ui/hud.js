@@ -61,7 +61,7 @@ G.ui.hud = {
       ctx.font = 'bold 10px sans-serif';
       ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#c9a6ff');
       const label = player.awakeningActive
-        ? `⚡ AWAKENING AKTIF! (${player.awakeningTimer.toFixed(1)}s)`
+        ? `⚡ AWAKENING AKTIF! (${player.awakeningTimer.toFixed(1)}s — Tekan F buat nonaktif)`
         : (ready ? '⚡ Tekan F untuk Awakening!' : `⚡ Awakening ${Math.floor(pct * 100)}%`);
       ctx.fillText(label, pad, y + 9);
       y += 12;
