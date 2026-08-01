@@ -64,7 +64,7 @@ G.player.RACES = [
     baseDamage: 2, hpStar: 3, defStar: 3, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 3,
     description: '"Discrimination disgusted him. He grew weary of a system that sought to control him. So he took control of himself, and in doing so, gained the ability to wield every branch of knowledge."',
     passiveText: 'Semua stat +15%.',
-    awakeningText: 'Overclock: semua stats (ATK/DEF/SPD/Max HP) +50% selama aktif.'
+    awakeningText: 'Overclock: tiap meter penuh & tekan F, dapat 1 stack ATK/DEF/SPD/Max HP +5% (naik 20%/stack, maks 15 stack). Tiap stack bertahan 60 detik, di-refresh kalau di-charge & tekan F lagi sebelum abis.'
   }
 ];
 

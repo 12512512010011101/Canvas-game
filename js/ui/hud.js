@@ -55,26 +55,56 @@ G.ui.hud = {
     }
 
     if (player.awakeningEligible) {
-      const pct = player.awakeningActive ? 1 : player.awakeningMeter / G.CONST.AWAKENING.max;
-      const ready = !player.awakeningActive && pct >= 1;
+      const isJack = player.awakeningTypes.includes('anomaly');
 
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#c9a6ff');
-      const label = player.awakeningActive
-        ? `⚡ AWAKENING AKTIF! (${player.awakeningTimer.toFixed(1)}s — Tekan F buat nonaktif)`
-        : (ready ? '⚡ Tekan F untuk Awakening!' : `⚡ Awakening ${Math.floor(pct * 100)}%`);
-      ctx.fillText(label, pad, y + 9);
-      y += 12;
+      if (isJack) {
+        const buff = player.skillBuffs.jackOverclock;
+        const pct = Math.min(1, player.awakeningMeter / G.CONST.AWAKENING.max);
+        const ready = pct >= 1;
 
-      const barH = 8;
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(pad, y, barW, barH);
-      ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#8b5cf6');
-      ctx.fillRect(pad, y, barW * pct, barH);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(pad, y, barW, barH);
-      y += barH + 6;
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = buff ? '#ff5fd1' : (ready ? '#ffd75e' : '#c9a6ff');
+        let label;
+        if (buff) {
+          label = `🌀 Overclock x${buff.stacks} (${buff.timeLeft.toFixed(1)}s)`;
+          if (ready) label += ' — Tekan F buat nambah stack!';
+        } else {
+          label = ready ? '🌀 Tekan F untuk Overclock!' : `🌀 Overclock charge ${Math.floor(pct * 100)}%`;
+        }
+        ctx.fillText(label, pad, y + 9);
+        y += 12;
+
+        const barH = 8;
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(pad, y, barW, barH);
+        ctx.fillStyle = ready ? '#ffd75e' : '#8b5cf6';
+        ctx.fillRect(pad, y, barW * pct, barH);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pad, y, barW, barH);
+        y += barH + 6;
+      } else {
+        const pct = player.awakeningActive ? 1 : player.awakeningMeter / G.CONST.AWAKENING.max;
+        const ready = !player.awakeningActive && pct >= 1;
+
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#c9a6ff');
+        const label = player.awakeningActive
+          ? `⚡ AWAKENING AKTIF! (${player.awakeningTimer.toFixed(1)}s)`
+          : (ready ? '⚡ Tekan F untuk Awakening!' : `⚡ Awakening ${Math.floor(pct * 100)}%`);
+        ctx.fillText(label, pad, y + 9);
+        y += 12;
+
+        const barH = 8;
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(pad, y, barW, barH);
+        ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#8b5cf6');
+        ctx.fillRect(pad, y, barW * pct, barH);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pad, y, barW, barH);
+        y += barH + 6;
+      }
     }
 
     ctx.textAlign = 'right';

@@ -100,20 +100,26 @@ PLAYER_ROW_MAP: {
   },
 
   STORAGE_KEY: 'canvas_game_save_v1',
-  // Awakening sekarang TOGGLE, bukan durasi tetap:
-  // - Tekan F (meter penuh) -> aktif SELAMANYA sampai di-nonaktifkan manual.
-  // - Tekan F lagi (lagi aktif) -> nonaktif, dan alih-alih kena cooldown,
-  //   pemain dapet stack buff "Awakening Echo" (echoBasePct, numpuk sampai
-  //   echoMaxStacks kali, tiap stack naik echoStackGrowth dari sebelumnya —
-  //   pola yang sama persis kayak Tortoise/Courage/Hawk Eye).
+  // Awakening race biasa: FIXED DURATION (balik ke mekanik awal, bukan toggle selamanya).
+  // Tekan F (meter penuh) -> aktif `duration` detik -> otomatis nonaktif sendiri.
+  //
+  // KHUSUS race Jack (anomaly): gak pakai duration di atas sama sekali. Tiap meter penuh
+  // & tekan F, dapet 1 STACK buff "Overclock" (bukan durasi tetap yang auto abis):
+  // - overclockBasePct: ATK/DEF/SPD/Max HP +5% dasar (stack 1)
+  // - tiap stack baru naik overclockStackGrowth (20%) dari stack sebelumnya
+  // - numpuk sampai overclockMaxStacks (15) kali
+  // - tiap stack bertahan overclockDuration (60) detik, dan KALAU nge-charge + tekan F
+  //   lagi sebelum itu habis, durasinya di-refresh & nambah 1 stack lagi. Kalau enggak,
+  //   ya abis (buff ke-reset total) begitu 60 detik itu lewat.
   AWAKENING: {
     max: 100,                    // meter penuh di angka ini
+    duration: 7,                 // detik awakening aktif (race biasa)
     chargeFromDamageDealt: 0.3,  // tiap 1 damage yang DIBERIKAN, meter naik segini
     chargeFromDamageTaken: 0.3,  // tiap 1 damage yang DITERIMA, meter naik segini (lebih cepat, lebih beresiko)
-    echoDuration: 10,            // detik durasi tiap stack Awakening Echo
-    echoBasePct: 0.05,           // ATK/Max HP/Speed +5% dasar (stack 1) sebelum growth
-    echoMaxStacks: 15,
-    echoStackGrowth: 0.20
+    overclockBasePct: 0.05,
+    overclockMaxStacks: 15,
+    overclockStackGrowth: 0.20,
+    overclockDuration: 60
   },
   DOMAIN: {
     demonBaseRadius: 90,   // radius area bakar Demon (px), dobel pas Domain Expansion aktif
