@@ -9,6 +9,7 @@ window.G = window.G || {};
   G.core.input.init(canvas);
   G.core.touchControls.init(G.core.input);
   G.ui.raceSelect.init();
+  G.ui.skillsBook.init();
 
   const menuEl = document.getElementById('main-menu');
   const loadingEl = document.getElementById('loading-text');

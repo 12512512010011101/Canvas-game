@@ -169,3 +169,35 @@
   color: var(--gold);
   font-style: italic;
 }
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  margin-top: 10px;
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+.btn-secondary:active {
+  box-shadow: none;
+}
+.race-card.static {
+  cursor: default;
+}
+.race-card.static:hover {
+  transform: none;
+  box-shadow: none;
+}
+.skill-card-toggle {
+  font-size: 10px;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+.skill-card-jack {
+  font-size: 10px;
+  color: var(--pink);
+  font-style: italic;
+}

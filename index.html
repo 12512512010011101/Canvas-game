@@ -19,6 +19,7 @@
       <p class="subtitle">Bertahan dari gelombang musuh, kumpulkan item dari chest!</p>
       <p id="loading-text">Memuat asset...</p>
       <button id="btn-start" disabled>Mulai Game</button>
+      <button id="btn-skills-book" class="btn-secondary">📖 Skills</button>
       <p id="best-score"></p>
       <div class="menu-controls">
         <span>🎮 WASD / Arrow</span><span>gerak</span>
@@ -40,6 +41,18 @@
       <div id="race-grid" class="race-grid"></div>
     </div>
   </div>
+
+  <!-- ===== Skills Book Overlay (referensi 9 skill, dibuka dari main menu) ===== -->
+<div id="skills-book-overlay" class="overlay">
+  <div class="menu-box race-box">
+    <h1>📖 Skills</h1>
+    <p class="subtitle">Referensi semua skill yang bisa didapat tiap naik level. Angka di bawah menunjukkan level 1 &amp; level maksimal (5).</p>
+    <div id="skills-book-grid" class="race-grid"></div>
+    <div class="overlay-buttons">
+      <button id="btn-skills-book-close">Tutup</button>
+    </div>
+  </div>
+</div>
 
   <!-- ===== Pause Overlay ===== -->
   <div id="pause-overlay" class="overlay">
@@ -170,6 +183,7 @@
 <script src="js/ui/hud.js"></script>
 <script src="js/ui/raceSelect.js"></script>
 <script src="js/ui/skillSelect.js"></script>
+<script src="js/ui/skillsBook.js"></script>
 <script src="js/ui/inventory.js"></script>
 <script src="js/ui/statsMenu.js"></script>
 <script src="js/ui/pause.js"></script>
