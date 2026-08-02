@@ -10,8 +10,6 @@ const FACING = {
   right: { x: 1, y: 0 }
 };
 
-// Jarak titik (px,py) ke segmen garis (ax,ay)-(bx,by). Dipakai Shadow Dash
-// buat ngecek musuh mana aja yang "dilewati" pas dash.
 function pointToSegmentDist(px, py, ax, ay, bx, by) {
   const dx = bx - ax, dy = by - ay;
   const lenSq = dx * dx + dy * dy;
@@ -27,7 +25,6 @@ function rollDamage(player, base) {
   return { dealt, isCrit };
 }
 
-// Efek tiap skill. Semua fungsi menerima (player, level, enemies, onHit, spawnEffect).
 const EFFECTS = {
   tornado(player, level, enemies, onHit, spawnEffect) {
     const s = G.skills.getLevelStats('tornado', level);
@@ -79,9 +76,7 @@ const EFFECTS = {
 
   elfblessing(player, level, enemies, onHit, spawnEffect) {
     const s = G.skills.getLevelStats('elfblessing', level);
-    // Boolean (kebal debuff), gak relevan buat di-stack — cast ulang cuma refresh durasi.
     player.applySkillBuff('elfblessing', { debuffImmune: true }, s.duration, { maxStacks: 1 });
-    // Elf's Blessing juga langsung nyembuhin status debuff yang lagi aktif saat di-cast.
     player.curePoison();
     if (spawnEffect) {
       spawnEffect({ type: 'burst_ring', x: player.x, y: player.y, radius: player.radius + 24, life: 0.5, maxLife: 0.5, color: '#7cd66b' });
@@ -129,7 +124,7 @@ const EFFECTS = {
 
       const norm = { x: toEnemy.x / dist, y: toEnemy.y / dist };
       const dot = norm.x * dir.x + norm.y * dir.y;
-      if (dot < 0.35) return; // cuma musuh di area depan (~±70 derajat dari arah hadap)
+      if (dot < 0.35) return;
 
       const { dealt, isCrit } = rollDamage(player, baseDmg);
       e.takeDamage(dealt);
@@ -191,7 +186,6 @@ const EFFECTS = {
         if (onHit) onHit(e, dealt, isCrit);
       }
 
-      // Semua musuh dalam radius otomatis kena seluruh hit, jadi bonus selalu berlaku.
       if (!e.dead) {
         const { dealt, isCrit } = rollDamage(player, bonusDmg);
         e.takeDamage(dealt);
@@ -207,9 +201,12 @@ const EFFECTS = {
   }
 };
 
+// Skill yang bertipe "buff diri sendiri" (bukan damage/utility sekali pakai).
+// Ini yang kena mekanik toggle baru — skill lain (tornado/intimidate/dll) tetap
+// cooldown-gated seperti biasa, gak kesentuh.
+const BUFF_SKILL_IDS = ['tortoise', 'courage', 'elfblessing', 'hawkeye'];
+
 G.player.skills = {
-  // Pilih `count` skill acak yang belum maksimal (baik yang belum dimiliki, atau
-  // yang masih bisa naik level) buat ditawarkan pas level up.
   rollChoices(player, count) {
     const eligible = G.skills.LIST.filter((s) => (player.skills[s.id] || 0) < G.CONST.SKILL.maxLevel);
     const shuffled = [...eligible];
@@ -228,22 +225,19 @@ G.player.skills = {
     if (current >= G.CONST.SKILL.maxLevel) return false;
 
     player.skills[skillId] = current + 1;
-    if (current === 0) player.skillOrder.push(skillId); // urutan pertama dapet = slot hotkey 1..9
+    if (current === 0) player.skillOrder.push(skillId);
     return true;
   },
 
   update(player, dt, input, enemies, onHit, spawnEffect) {
-    // cooldown
     Object.keys(player.skillCooldowns).forEach((id) => {
       if (player.skillCooldowns[id] > 0) {
         player.skillCooldowns[id] = Math.max(0, player.skillCooldowns[id] - dt);
       }
     });
 
-    // buff timer (tortoise, courage, hawkeye, elfblessing)
     player.updateSkillBuffs(dt);
 
-    // input hotkey 1-9 sesuai urutan skillOrder
     const digitCodes = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'];
     for (let i = 0; i < player.skillOrder.length; i++) {
       if (!input.wasPressed(digitCodes[i])) continue;
@@ -252,19 +246,58 @@ G.player.skills = {
   },
 
   tryCast(player, skillId, enemies, onHit, spawnEffect) {
-    const cd = player.skillCooldowns[skillId] || 0;
-    if (cd > 0) return false;
-
     const level = player.skills[skillId] || 0;
     if (level <= 0) return false;
 
     const effect = EFFECTS[skillId];
     if (!effect) return false;
 
-    effect(player, level, enemies, onHit, spawnEffect);
+    const isBuffSkill = BUFF_SKILL_IDS.includes(skillId);
 
-    const stats = G.skills.getLevelStats(skillId, level);
-    player.skillCooldowns[skillId] = stats.cooldown;
+    if (!isBuffSkill) {
+      const cd = player.skillCooldowns[skillId] || 0;
+      if (cd > 0) return false;
+      effect(player, level, enemies, onHit, spawnEffect);
+      const stats = G.skills.getLevelStats(skillId, level);
+      player.skillCooldowns[skillId] = stats.cooldown;
+      return true;
+    }
+
+    const isJack = player.hasPassive('anomaly');
+    const activeBuff = player.skillBuffs[skillId];
+
+    if (activeBuff) {
+      if (isJack) {
+        if (activeBuff.stacks >= activeBuff.maxStacks) {
+          player.removeSkillBuff(skillId);
+          return true;
+        }
+        effect(player, level, enemies, onHit, spawnEffect);
+        if (player.skillBuffs[skillId]) {
+          player.skillBuffs[skillId].timeLeft = G.CONST.SKILL.jackBuffStackDuration;
+        }
+        return true;
+      }
+
+      player.removeSkillBuff(skillId);
+      const stats = G.skills.getLevelStats(skillId, level);
+      player.skillCooldowns[skillId] = stats.cooldown;
+      return true;
+    }
+
+    if (!isJack) {
+      const cd = player.skillCooldowns[skillId] || 0;
+      if (cd > 0) return false;
+    }
+
+    effect(player, level, enemies, onHit, spawnEffect);
+    if (player.skillBuffs[skillId]) {
+      if (isJack) {
+        player.skillBuffs[skillId].timeLeft = G.CONST.SKILL.jackBuffStackDuration;
+      } else {
+        player.skillBuffs[skillId].timeLeft = Infinity;
+      }
+    }
     return true;
   }
 };

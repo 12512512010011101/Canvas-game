@@ -100,26 +100,15 @@ PLAYER_ROW_MAP: {
   },
 
   STORAGE_KEY: 'canvas_game_save_v1',
-  // Awakening race biasa: FIXED DURATION (balik ke mekanik awal, bukan toggle selamanya).
+  // Awakening: FIXED DURATION buat SEMUA race (termasuk Jack).
   // Tekan F (meter penuh) -> aktif `duration` detik -> otomatis nonaktif sendiri.
-  //
-  // KHUSUS race Jack (anomaly): gak pakai duration di atas sama sekali. Tiap meter penuh
-  // & tekan F, dapet 1 STACK buff "Overclock" (bukan durasi tetap yang auto abis):
-  // - overclockBasePct: ATK/DEF/SPD/Max HP +5% dasar (stack 1)
-  // - tiap stack baru naik overclockStackGrowth (20%) dari stack sebelumnya
-  // - numpuk sampai overclockMaxStacks (15) kali
-  // - tiap stack bertahan overclockDuration (60) detik, dan KALAU nge-charge + tekan F
-  //   lagi sebelum itu habis, durasinya di-refresh & nambah 1 stack lagi. Kalau enggak,
-  //   ya abis (buff ke-reset total) begitu 60 detik itu lewat.
+  // (Stacking buff race Jack itu HAL LAIN — itu di sistem skill buff di skill bar,
+  // lihat SKILL.jackBuffStackDuration & js/player/skills.js, bukan di sini.)
   AWAKENING: {
-    max: 100,                    // meter penuh di angka ini
-    duration: 7,                 // detik awakening aktif (race biasa)
-    chargeFromDamageDealt: 0.3,  // tiap 1 damage yang DIBERIKAN, meter naik segini
-    chargeFromDamageTaken: 0.3,  // tiap 1 damage yang DITERIMA, meter naik segini (lebih cepat, lebih beresiko)
-    overclockBasePct: 0.05,
-    overclockMaxStacks: 15,
-    overclockStackGrowth: 0.20,
-    overclockDuration: 60
+    max: 100,
+    duration: 7,
+    chargeFromDamageDealt: 0.3,
+    chargeFromDamageTaken: 0.3
   },
   DOMAIN: {
     demonBaseRadius: 90,   // radius area bakar Demon (px), dobel pas Domain Expansion aktif
@@ -131,9 +120,15 @@ PLAYER_ROW_MAP: {
   YARD: 15,
 
   SKILL: {
-    levelInterval: 1,   // tiap kelipatan level ini, player dapet 1 pilihan skill baru
-    maxLevel: 5,         // level maksimal per skill
-    choiceCount: 3        // jumlah pilihan yang ditawarkan tiap kali naik level kelipatan 5
+    levelInterval: 1,
+    maxLevel: 5,
+    choiceCount: 3,
+    // Skill buff (Tortoise/Courage/Hawk Eye/Elf's Blessing) sekarang TOGGLE:
+    // - Race biasa: pencet -> aktif SELAMANYA, pencet lagi -> nonaktif + masuk cooldown skill itu.
+    // - Race Jack: pencet lagi (selagi aktif) -> nambah 1 stack, durasi di-refresh ke
+    //   jackBuffStackDuration detik (BUKAN durasi normal skill, dan BUKAN cooldown).
+    //   Kalau udah di stack maksimal (15) terus dipencet lagi, buff langsung mati.
+    jackBuffStackDuration: 6
   },
   BULLET_ICON: { x: 220, y: 130, w: 60, h: 60 },
 

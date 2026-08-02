@@ -217,37 +217,15 @@ G.player.skills.update(
   }
 
   updateAwakening(dt, input) {
-    const isJack = this.awakeningTypes.includes('anomaly');
-
     if (input.wasPressed('KeyF') && this.canActivateAwakening()) {
-      if (isJack) {
-        this.activateJackOverclock();
-      } else {
-        this.activateAwakening();
-      }
+      this.activateAwakening();
     }
 
-    // Race biasa: durasi tetap, otomatis nonaktif sendiri pas abis.
-    // Jack TIDAK lewat sini sama sekali — dia gak punya "awakeningActive", cuma stack buff.
-    if (!isJack && this.awakeningActive) {
+    // Durasi tetap buat SEMUA race (termasuk Jack) — otomatis nonaktif sendiri pas abis.
+    if (this.awakeningActive) {
       this.awakeningTimer -= dt;
       if (this.awakeningTimer <= 0) this.deactivateAwakening();
     }
-  }
-
-  // Khusus race Jack: tiap meter penuh + tekan F, nambah 1 stack "Overclock"
-  // (ATK/DEF/SPD/Max HP +5% dasar, naik 20% tiap stack, maks 15 stack).
-  // Tiap stack bertahan 60 detik dan di-refresh kalau di-charge + tekan F lagi
-  // sebelum abis (pola sama kayak Tortoise Shield / Warrior's Courage / Hawk Eye).
-  activateJackOverclock() {
-    this.awakeningMeter = 0;
-    const cfg = G.CONST.AWAKENING;
-    this.applySkillBuff('jackOverclock', {
-      atkPct: cfg.overclockBasePct,
-      defPct: cfg.overclockBasePct,
-      speedPct: cfg.overclockBasePct,
-      hpPct: cfg.overclockBasePct
-    }, cfg.overclockDuration, { maxStacks: cfg.overclockMaxStacks, stackGrowth: cfg.overclockStackGrowth });
   }
 
   activateAwakening() {
@@ -259,14 +237,28 @@ G.player.skills.update(
       this._primordialStacks = 0;
     }
 
-    // Undying Will: Defense +50%, plus tidak bisa mati (dicek di takeDamage)
+    // Overclock: semua stats (ATK/DEF/SPD/Max HP) +50% selama aktif.
+    if (this.awakeningTypes.includes('anomaly')) {
+      const bonus = {
+        atk: Math.round(this.stats.totalAtk * 0.5),
+        def: Math.round(this.stats.totalDef * 0.5),
+        speed: Math.round(this.stats.totalSpeed * 0.5),
+        maxHP: Math.round(this.stats.totalMaxHP * 0.5)
+      };
+      this._awakenAnomalyBonus = bonus;
+      this.stats.bonus.atk += bonus.atk;
+      this.stats.bonus.def += bonus.def;
+      this.stats.bonus.speed += bonus.speed;
+      this.stats.bonus.maxHP += bonus.maxHP;
+      this.stats.hp += bonus.maxHP;
+    }
+
     if (this.awakeningTypes.includes('undead')) {
       const bonus = { def: Math.round(this.stats.totalDef * 0.5) };
       this._awakenUndeadBonus = bonus;
       this.stats.bonus.def += bonus.def;
     }
 
-    // Nature's Grace: Attack Speed & Move Speed +30% (efek potion +50% dicek langsung di heal())
     if (this.awakeningTypes.includes('elf')) {
       const bonus = { speed: Math.round(this.stats.totalSpeed * 0.3) };
       this._awakenElfBonus = bonus;
@@ -274,7 +266,6 @@ G.player.skills.update(
       this.attackCooldownMult = (this.attackCooldownMult || 1) / 1.3;
     }
 
-    // Mountain's Wrath: Defense +40%, Damage +30% (Legendary Drop x2 dicek di chestRNG)
     if (this.awakeningTypes.includes('dwarf')) {
       const bonus = {
         def: Math.round(this.stats.totalDef * 0.4),
@@ -285,7 +276,6 @@ G.player.skills.update(
       this.stats.bonus.atk += bonus.atk;
     }
 
-    // Feral Instinct: Damage +50%, Attack Speed +25% (heal on kill dicek di registerKill)
     if (this.awakeningTypes.includes('beast')) {
       const bonus = { atk: Math.round(this.stats.totalAtk * 0.5) };
       this._awakenBeastBonus = bonus;
@@ -297,6 +287,16 @@ G.player.skills.update(
   deactivateAwakening() {
     this.awakeningActive = false;
     this.awakeningTimer = 0;
+
+    if (this.awakeningTypes.includes('anomaly') && this._awakenAnomalyBonus) {
+      const b = this._awakenAnomalyBonus;
+      this.stats.bonus.atk -= b.atk;
+      this.stats.bonus.def -= b.def;
+      this.stats.bonus.speed -= b.speed;
+      this.stats.bonus.maxHP -= b.maxHP;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
+      this._awakenAnomalyBonus = null;
+    }
 
     if (this.awakeningTypes.includes('undead') && this._awakenUndeadBonus) {
       this.stats.bonus.def -= this._awakenUndeadBonus.def;
