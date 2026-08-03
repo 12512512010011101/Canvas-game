@@ -1,120 +1,284 @@
 // js/ui/hud.js
+// HUD battle bergaya fantasy/RPG klasik: nameplate berukir + banner parchment.
 window.G = window.G || {};
 G.ui = G.ui || {};
 
 G.ui.hud = {
+  // Palet warna tema "ukiran kayu + emas"
+  COLORS: {
+    panelTop: 'rgba(42, 28, 16, 0.92)',
+    panelBottom: 'rgba(24, 15, 8, 0.94)',
+    goldOuter: '#e8c96a',
+    goldInner: '#8a6a26',
+    hpLight: '#ff6b5e',
+    hpDark: '#8f1f1a',
+    expLight: '#ffe28a',
+    expDark: '#b8860b'
+  },
+
+  // --- Helper: panel berukir dengan border emas ganda ---
+  drawFrame(ctx, x, y, w, h, radius = 8) {
+    const r = radius;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, this.COLORS.panelTop);
+    grad.addColorStop(1, this.COLORS.panelBottom);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = this.COLORS.goldOuter;
+    ctx.stroke();
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = this.COLORS.goldInner;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y + 3);
+    ctx.arcTo(x + w - 3, y + 3, x + w - 3, y + h - 3, r);
+    ctx.arcTo(x + w - 3, y + h - 3, x + 3, y + h - 3, r);
+    ctx.arcTo(x + 3, y + h - 3, x + 3, y + 3, r);
+    ctx.arcTo(x + 3, y + 3, x + w - 3, y + 3, r);
+    ctx.stroke();
+    ctx.restore();
+  },
+
+  // --- Helper: medalion bundar buat portrait/emoji ras ---
+  drawMedallion(ctx, cx, cy, radius, emoji) {
+    ctx.save();
+    const grad = ctx.createRadialGradient(cx, cy - radius * 0.3, radius * 0.2, cx, cy, radius);
+    grad.addColorStop(0, '#3a2a18');
+    grad.addColorStop(1, '#150d06');
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = this.COLORS.goldOuter;
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = this.COLORS.goldInner;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius - 3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.font = `${Math.floor(radius * 1.1)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji || '❔', cx, cy + 1);
+    ctx.restore();
+  },
+
+  // --- Helper: gambar 1 bar (HP/EXP/Awakening) dengan gradient + label ---
+  drawBar(ctx, x, y, w, h, pct, colorLight, colorDark, label) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(x, y, w, h);
+
+    const fillW = Math.max(0, w * Math.min(1, pct));
+    if (fillW > 0) {
+      const grad = ctx.createLinearGradient(x, y, x, y + h);
+      grad.addColorStop(0, colorLight);
+      grad.addColorStop(1, colorDark);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, fillW, h);
+    }
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(232, 201, 106, 0.7)';
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+
+    if (label) {
+      ctx.font = `bold ${Math.max(9, h - 4)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillText(label, x + w / 2 + 1, y + h / 2 + 1);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(label, x + w / 2, y + h / 2);
+    }
+    ctx.restore();
+  },
+
+  // --- Helper: icon dari icons_sheet (koin/heart), fallback ke emoji ---
+  drawIcon(ctx, key, x, y, size, fallbackEmoji) {
+    const sheet = G.items && G.items.iconImage;
+    const rect = G.CONST.ICONS[key];
+    if (sheet && rect) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sheet, rect.x, rect.y, rect.w, rect.h, x, y, size, size);
+      ctx.restore();
+    } else {
+      ctx.font = `${size}px sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(fallbackEmoji || '', x, y);
+    }
+  },
+
   draw(ctx, player, waveManager) {
     ctx.save();
+    const pad = 14;
 
-    const pad = 16;
-    const barW = 220;
-    let y = pad;
+    // ============ NAMEPLATE (kiri atas) ============
+    const medR = 28;
+    const medCx = pad + medR;
+    const medCy = pad + medR;
 
-    const hpH = 16;
-    const hpPct = Math.max(0, player.stats.hp / player.stats.totalMaxHP);
-    ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(pad, y, barW, hpH);
-    ctx.fillStyle = '#e74c3c';
-    ctx.fillRect(pad, y, barW * hpPct, hpH);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(pad, y, barW, hpH);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${Math.ceil(player.stats.hp)} / ${player.stats.totalMaxHP}`, pad + barW / 2, y + 12);
-    y += hpH + 6;
+    const plateX = pad + medR * 2 + 10;
+    const plateY = pad;
+    const plateW = 224;
+    const plateH = medR * 2;
 
-    const expH = 8;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(pad, y, barW, expH);
-    ctx.fillStyle = '#3498db';
-    ctx.fillRect(pad, y, barW * player.expSystem.progress, expH);
-    ctx.strokeStyle = '#fff';
-    ctx.strokeRect(pad, y, barW, expH);
-    y += expH + 8;
+    this.drawFrame(ctx, plateX, plateY, plateW, plateH, 10);
+    this.drawMedallion(ctx, medCx, medCy, medR, player.race.emoji);
 
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 13px sans-serif';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(`Level ${player.levelSystem.level}`, pad, y + 12);
-
-    ctx.font = '11px sans-serif';
-    ctx.fillStyle = '#bbb';
+    // Nama level + ras
     const raceLabel = player.mimicRaceIds && player.mimicRaceIds.length
-      ? `${player.race.emoji} ${player.race.name} (copy: ${player.mimicRaceIds.join(' + ')})`
-      : `${player.race.emoji} ${player.race.name}`;
-    ctx.fillText(raceLabel, pad + 90, y + 12);
-    y += 22;
+      ? `${player.race.name} (+${player.mimicRaceIds.length})`
+      : player.race.name;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = 'bold 13px Georgia, serif';
+    ctx.fillStyle = '#ffe9b0';
+    ctx.fillText(`Lv.${player.levelSystem.level}  ${raceLabel}`, plateX + 10, plateY + 16);
 
+    // HP bar
+    const hpPct = Math.max(0, player.stats.hp / player.stats.totalMaxHP);
+    this.drawBar(
+      ctx, plateX + 10, plateY + 22, plateW - 20, 14,
+      hpPct, this.COLORS.hpLight, this.COLORS.hpDark,
+      `${Math.ceil(player.stats.hp)} / ${player.stats.totalMaxHP}`
+    );
+    // peringatan kritis: berkedip merah terang kalau HP < 20%
+    if (hpPct < 0.2 && hpPct > 0) {
+      const pulse = 0.35 + 0.35 * Math.abs(Math.sin(performance.now() / 180));
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.strokeStyle = '#ff2b2b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(plateX + 9, plateY + 21, plateW - 18, 16);
+      ctx.restore();
+    }
+
+    // EXP bar (tipis, di bawah HP)
+    this.drawBar(
+      ctx, plateX + 10, plateY + 40, plateW - 20, 7,
+      player.expSystem.progress, this.COLORS.expLight, this.COLORS.expDark, null
+    );
+
+    let badgeY = plateY + plateH + 8;
+
+    // ============ BADGE STATUS (racun, awakening) ============
     if (player.poison.active) {
-      ctx.fillStyle = '#7cd66b';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillText(`☠ Teracun (${player.poison.timeLeft.toFixed(1)}s)`, pad, y + 10);
-      y += 20;
+      const bw = 150, bh = 20;
+      this.drawFrame(ctx, pad, badgeY, bw, bh, 6);
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#8fe27a';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`☠ Teracun (${player.poison.timeLeft.toFixed(1)}s)`, pad + 8, badgeY + bh / 2 + 1);
+      badgeY += bh + 6;
     }
 
     if (player.awakeningEligible) {
-      const isJack = player.awakeningTypes.includes('anomaly');
+  const bw = 224, bh = 22;
+  this.drawFrame(ctx, pad, badgeY, bw, bh, 6);
 
-      if (isJack) {
-        const buff = player.skillBuffs.jackOverclock;
-        const pct = Math.min(1, player.awakeningMeter / G.CONST.AWAKENING.max);
-        const ready = pct >= 1;
+  const isJack = player.awakeningTypes?.includes('anomaly');
 
-        ctx.font = 'bold 10px sans-serif';
-        ctx.fillStyle = buff ? '#ff5fd1' : (ready ? '#ffd75e' : '#c9a6ff');
-        let label;
-        if (buff) {
-          label = `🌀 Overclock x${buff.stacks} (${buff.timeLeft.toFixed(1)}s)`;
-          if (ready) label += ' — Tekan F buat nambah stack!';
-        } else {
-          label = ready ? '🌀 Tekan F untuk Overclock!' : `🌀 Overclock charge ${Math.floor(pct * 100)}%`;
-        }
-        ctx.fillText(label, pad, y + 9);
-        y += 12;
+  if (isJack) {
+    const buff = player.skillBuffs.jackOverclock;
+    const pct = Math.min(1, player.awakeningMeter / G.CONST.AWAKENING.max);
+    const ready = pct >= 1;
 
-        const barH = 8;
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
-        ctx.fillRect(pad, y, barW, barH);
-        ctx.fillStyle = ready ? '#ffd75e' : '#8b5cf6';
-        ctx.fillRect(pad, y, barW * pct, barH);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(pad, y, barW, barH);
-        y += barH + 6;
-      } else {
-        const pct = player.awakeningActive ? 1 : player.awakeningMeter / G.CONST.AWAKENING.max;
-        const ready = !player.awakeningActive && pct >= 1;
+    const label = buff
+      ? `🌀 Overclock x${buff.stacks} (${buff.timeLeft.toFixed(1)}s)${ready ? ' - Tekan F!' : ''}`
+      : (ready
+          ? '🌀 Tekan F untuk Overclock!'
+          : `🌀 Overclock ${Math.floor(pct * 100)}%`);
 
-        ctx.font = 'bold 10px sans-serif';
-        ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#c9a6ff');
-        const label = player.awakeningActive
-          ? `⚡ AWAKENING AKTIF! (${player.awakeningTimer.toFixed(1)}s)`
-          : (ready ? '⚡ Tekan F untuk Awakening!' : `⚡ Awakening ${Math.floor(pct * 100)}%`);
-        ctx.fillText(label, pad, y + 9);
-        y += 12;
+    this.drawBar(
+      ctx,
+      pad + 4,
+      badgeY + 4,
+      bw - 8,
+      bh - 8,
+      pct,
+      ready ? '#ffe28a' : '#c9a6ff',
+      ready ? '#b8860b' : '#5b2a9e',
+      null
+    );
 
-        const barH = 8;
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
-        ctx.fillRect(pad, y, barW, barH);
-        ctx.fillStyle = player.awakeningActive ? '#ff5fd1' : (ready ? '#ffd75e' : '#8b5cf6');
-        ctx.fillRect(pad, y, barW * pct, barH);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(pad, y, barW, barH);
-        y += barH + 6;
-      }
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, pad + 8, badgeY + bh / 2);
+  } else {
+    const pct = player.awakeningActive ? 1 : player.awakeningMeter / G.CONST.AWAKENING.max;
+    const ready = !player.awakeningActive && pct >= 1;
+
+    const label = player.awakeningActive
+      ? `⚡ AWAKENING! (${player.awakeningTimer.toFixed(1)}s)`
+      : (ready
+          ? '⚡ Tekan F untuk Awakening!'
+          : `⚡ Awakening ${Math.floor(pct * 100)}%`);
+
+    this.drawBar(
+      ctx,
+      pad + 4,
+      badgeY + 4,
+      bw - 8,
+      bh - 8,
+      pct,
+      player.awakeningActive ? '#ff8fe3' : (ready ? '#ffe28a' : '#c9a6ff'),
+      player.awakeningActive ? '#a8127e' : (ready ? '#b8860b' : '#5b2a9e'),
+      null
+    );
+
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, pad + 8, badgeY + bh / 2);
+  }
+
+  badgeY += bh + 6;
     }
+    
+
+    // ============ BANNER WAVE + GOLD (kanan atas) ============
+    const bannerW = 200;
+    const bannerH = 54;
+    const bx = G.CONST.CANVAS_W - pad - bannerW;
+    const by = pad;
+    this.drawFrame(ctx, bx, by, bannerW, bannerH, 10);
+
+    const waveLabel = waveManager.state === 'intermission'
+      ? `Wave ${waveManager.waveNumber + 1} dalam ${waveManager.betweenTimer.remaining.toFixed(1)}s`
+      : `Wave ${waveManager.waveNumber}${waveManager.currentWave && waveManager.currentWave.isBoss ? ' — BOSS' : ''}`;
 
     ctx.textAlign = 'right';
-    ctx.font = 'bold 13px sans-serif';
-    ctx.fillStyle = '#fff';
-    const waveLabel = waveManager.state === 'intermission'
-      ? `Wave ${waveManager.waveNumber + 1} datang dalam ${waveManager.betweenTimer.remaining.toFixed(1)}s`
-      : `Wave ${waveManager.waveNumber}${waveManager.currentWave && waveManager.currentWave.isBoss ? ' — BOSS' : ''}`;
-    ctx.fillText(waveLabel, G.CONST.CANVAS_W - pad, pad + 12);
-    ctx.fillText(`Gold: ${player.gold}`, G.CONST.CANVAS_W - pad, pad + 30);
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = 'bold 13px Georgia, serif';
+    ctx.fillStyle = waveManager.currentWave && waveManager.currentWave.isBoss ? '#ff8a65' : '#ffe9b0';
+    ctx.fillText(waveLabel, bx + bannerW - 10, by + 22);
+
+    this.drawIcon(ctx, 'coin', bx + 10, by + 30, 18, '🪙');
+    ctx.textAlign = 'right';
+    ctx.font = 'bold 15px Georgia, serif';
+    ctx.fillStyle = '#ffd75e';
+    ctx.fillText(`${player.gold}`, bx + bannerW - 10, by + 44);
 
     this.drawSkillBar(ctx, player);
 

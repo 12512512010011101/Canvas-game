@@ -1,0 +1,145 @@
+/* css/menu.css */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 6, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 30;
+}
+.overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-box {
+  background: #14201a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 40px 48px;
+  text-align: center;
+  min-width: 320px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.menu-box h1 {
+  font-size: 32px;
+  margin-bottom: 6px;
+  color: #6ee08a;
+  letter-spacing: 1px;
+}
+.menu-box .subtitle {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 22px;
+}
+
+#loading-text {
+  font-size: 12px;
+  color: #ffb545;
+  margin-bottom: 16px;
+}
+#best-score {
+  font-size: 12px;
+  color: #8fb996;
+  margin-top: 14px;
+}
+
+.menu-controls {
+  margin-top: 20px;
+  font-size: 11px;
+  color: #777;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.overlay-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#gameover-stats p {
+  font-size: 13px;
+  margin: 4px 0;
+  color: #ccc;
+}
+#gameover-stats hr {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 10px 0;
+}
+
+/* main menu is a special overlay always visible by default */
+#main-menu {
+  opacity: 1;
+  pointer-events: auto;
+}
+#main-menu:not(.visible) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Race select */
+.race-box {
+  max-width: 900px;
+  width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.race-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  text-align: left;
+}
+.race-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 12px;
+  color: #eee;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.1s ease, background 0.15s ease;
+}
+.race-card:hover {
+  border-color: #6ee08a;
+  background: rgba(110, 224, 138, 0.08);
+  transform: translateY(-2px);
+}
+.race-card-head {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+.race-card-stats {
+  font-size: 11px;
+  color: #9fd3ac;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.race-card-stats .dmg-num {
+  color: #ffce6b;
+}
+.race-card-passive {
+  font-size: 11px;
+  color: #ddd;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.race-card-note {
+  font-size: 10px;
+  color: #e08a8a;
+  margin-bottom: 4px;
+}
+.race-card-awakening {
+  font-size: 10px;
+  color: #ffd75e;
+  font-style: italic;
+}
