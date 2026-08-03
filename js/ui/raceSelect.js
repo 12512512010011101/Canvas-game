@@ -38,38 +38,16 @@ G.ui.raceSelect = {
   renderMainGrid() {
     this.titleEl.textContent = 'Pilih Race';
     this.gridEl.innerHTML = G.player.RACES.map((r) => this.cardHtml(r)).join('');
-    this.attachCardHandlers((raceId) => {
-      if (raceId === 'anomaly') {
-        this.renderMimicGrid([]);
-      } else {
-        this.finish(raceId, []);
-      }
-    });
-  },
-
-  renderMimicGrid(pickedSoFar) {
-    const remaining = 2 - pickedSoFar.length;
-    const pickedLabel = pickedSoFar.length
-      ? ` (sudah pilih: ${pickedSoFar.join(', ')})`
-      : '';
-    this.titleEl.textContent = `🌀 Anomaly — Pilih ${remaining} Passive lagi yang Mau Di-copy${pickedLabel}`;
-
-    const options = G.player.RACES.filter((r) => r.id !== 'anomaly' && !pickedSoFar.includes(r.id));
-    this.gridEl.innerHTML = options.map((r) => this.cardHtml(r, true)).join('');
-    this.attachCardHandlers((mimicId) => {
-      const picked = [...pickedSoFar, mimicId];
-      if (picked.length < 2) {
-        this.renderMimicGrid(picked);
-      } else {
-        this.finish('anomaly', picked);
-      }
-    });
+    // Jack (anomaly) sekarang dipilih langsung kayak race lain — awakening-nya
+    // udah gak copy passive 2 race lain lagi, jadi gak perlu grid pilihan tambahan.
+    this.attachCardHandlers((raceId) => this.finish(raceId, []));
   },
 
   cardHtml(race, mimicMode = false) {
     return `
       <button class="race-card" data-race="${race.id}">
         <div class="race-card-head">${race.emoji} <strong>${race.name}</strong></div>
+        ${race.description ? `<div class="race-card-desc">${race.description}</div>` : ''}
         <div class="race-card-stats">
           <div>DMG ${this.starString(this.dmgStars(race.baseDamage))} <span class="dmg-num">(${race.baseDamage})</span></div>
           <div>HP ${this.starString(race.hpStar)}</div>

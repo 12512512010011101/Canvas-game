@@ -7,13 +7,15 @@
   width: 280px;
   max-height: 70vh;
   overflow-y: auto;
-  background: rgba(15, 22, 16, 0.92);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(24, 38, 30, 0.95) 0%, rgba(15, 22, 16, 0.95) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 16px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: var(--shadow-soft);
+  z-index: 26;
 }
 .panel.visible {
   opacity: 1;
@@ -23,12 +25,13 @@
 .panel h3 {
   margin-bottom: 10px;
   font-size: 15px;
-  border-bottom: 1px solid rgba(255,255,255,0.12);
+  color: var(--accent);
+  border-bottom: 1px solid var(--border-soft);
   padding-bottom: 8px;
 }
 .empty-note {
   font-size: 12px;
-  color: #999;
+  color: var(--text-dim);
 }
 
 .inv-list, .stats-list {
@@ -39,10 +42,17 @@
 .inv-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  background: rgba(255,255,255,0.04);
-  border-radius: 6px;
+  background: var(--panel-bg-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   padding: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.inv-item:hover {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.06);
 }
 .inv-item-info {
   display: flex;
@@ -50,32 +60,27 @@
   font-size: 12px;
 }
 .inv-item-info small {
-  color: #aaa;
+  color: var(--text-dim);
 }
 .loot-icon {
   font-size: 20px;
 }
-.inv-item {
-  justify-content: space-between;
-}
 .btn-use-item {
   padding: 5px 10px;
   font-size: 11px;
-  background: #2d8f4e;
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent-dark));
+  color: #08130b;
   flex-shrink: 0;
-}
-.btn-use-item:hover {
-  background: #37ab5f;
 }
 .equipped-tag {
   font-size: 10px;
-  color: #6ee08a;
+  color: var(--accent);
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 .combo-card {
-  border: 1px solid #ffd75e;
+  border: 1px solid var(--gold);
   background: rgba(255, 215, 94, 0.08);
 }
 .combo-card .loot-icon {
@@ -83,22 +88,20 @@
   flex-shrink: 0;
 }
 .btn-combo {
-  background: #d4a017;
-}
-.btn-combo:hover {
-  background: #f0b52c;
+  background: linear-gradient(180deg, #f0b52c, #d4a017);
+  color: #2a1c02;
 }
 
 .stats-list li {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  padding: 4px 0;
-  border-bottom: 1px dashed rgba(255,255,255,0.08);
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--border-soft);
 }
 .stats-list li span {
   font-weight: 700;
-  color: #6ee08a;
+  color: var(--accent);
 }
 
 /* Chest popup */
@@ -110,7 +113,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 20;
+  z-index: 28;
 }
 #chest-popup.visible {
   opacity: 1;
@@ -118,15 +121,16 @@
   transform: translateX(-50%) translateY(0);
 }
 .chest-popup-inner {
-  background: rgba(20, 16, 8, 0.96);
+  background: linear-gradient(180deg, rgba(28, 22, 10, 0.97), rgba(18, 14, 6, 0.97));
   border: 1px solid #c0862f;
-  border-radius: 10px;
-  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
   text-align: center;
   min-width: 240px;
+  box-shadow: var(--shadow-soft), 0 0 24px rgba(255, 206, 107, 0.15);
 }
 .chest-popup-inner h3 {
-  color: #ffce6b;
+  color: var(--gold-strong);
   margin-bottom: 10px;
 }
 .loot-list {
@@ -143,7 +147,7 @@
   font-size: 13px;
 }
 .loot-gold {
-  color: #ffd75e;
+  color: var(--gold);
   font-weight: 700;
   margin-bottom: 10px;
 }
@@ -158,7 +162,7 @@
 .armor-section {
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,0.12);
+  border-top: 1px solid var(--border-soft);
 }
 .armor-section h4 {
   font-size: 13px;
@@ -166,15 +170,15 @@
   color: #ddd;
 }
 .armor-set-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
   padding: 8px;
   margin-bottom: 8px;
 }
 .armor-set-card.set-complete {
-  border-color: #6ee08a;
-  background: rgba(110,224,138,0.06);
+  border-color: var(--accent);
+  background: rgba(110, 224, 138, 0.06);
 }
 .armor-set-head {
   display: flex;
@@ -185,12 +189,12 @@
   flex-wrap: wrap;
 }
 .set-complete-tag {
-  color: #6ee08a;
+  color: var(--accent);
   font-size: 10px;
 }
 .armor-set-total {
   margin-left: auto;
-  color: #ffce6b;
+  color: var(--gold-strong);
   font-size: 10px;
 }
 .armor-piece-list {
@@ -211,4 +215,17 @@
 .armor-piece small {
   color: #bbb;
   text-transform: capitalize;
+}
+
+/* Skill select modal */
+.skill-card-tag {
+  color: var(--gold) !important;
+  font-weight: 700;
+}
+.skill-card-stats {
+  color: #9fd3ac;
+}
+.skill-card:hover {
+  border-color: var(--gold);
+  background: rgba(255, 215, 94, 0.08);
 }

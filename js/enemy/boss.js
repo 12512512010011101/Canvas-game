@@ -5,16 +5,16 @@ G.enemy = G.enemy || {};
 class Boss extends G.enemy.Enemy {
   constructor(x, y, waveNumber) {
     const mult = 1 + waveNumber * 0.15;
-    super(x, y, {
-      radius: 22,
-      speed: 55,
-      hp: Math.round(1400 * mult),
-      damage: Math.round(14 * mult),
-      expReward: 120,
-      color: '#d35400',
-      type: 'boss',
-      attackCooldown: 1.2
-    });
+super(x, y, {
+  radius: 22,
+  speed: 55,
+  hp: Math.round(1650 * mult),   // sedikit lebih tebal (dulu 1400)
+  damage: Math.round(16 * mult), // dikit lebih sakit (dulu 14)
+  expReward: 120,
+  color: '#d35400',
+  type: 'boss',
+  attackCooldown: 1.2
+});
     this.phaseTimer = 0;
     this.slamCooldown = 0;
   }
@@ -24,7 +24,9 @@ class Boss extends G.enemy.Enemy {
     this.phaseTimer += dt;
     if (this.slamCooldown > 0) this.slamCooldown -= dt;
 
-    G.enemy.ai.chase(this, player, this.speed, dt);
+    if (this.controlTimer > 0) return;
+
+    G.enemy.ai.chase(this, player, this.getSpeed(), dt);
     this.tryAttackPlayer(player, onPlayerDamage);
 
     // setiap 3 detik, tembak 4 proyektil menyebar (pola serangan kedua)
@@ -35,7 +37,7 @@ class Boss extends G.enemy.Enemy {
         spawnProjectile({
           x: this.x, y: this.y,
           vx: Math.cos(ang) * 140, vy: Math.sin(ang) * 140,
-          damage: Math.round(this.damage * 0.6),
+          damage: Math.round(this.damage * 0.6 * this.atkDebuffMult),
           owner: 'enemy',
           radius: 5
         });

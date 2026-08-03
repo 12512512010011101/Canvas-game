@@ -4,15 +4,13 @@ G.wave = G.wave || {};
 
 G.wave.difficulty = {
 
-  // HP naik eksponensial
-  hpMultiplierFor(waveNumber) {
-    return Math.pow(2.0, waveNumber);
-  },
+hpMultiplierFor(waveNumber) {
+  return 1 + (waveNumber * 0.5);
+},
 
-  // Damage naik sedikit lebih pelan
-  dmgMultiplierFor(waveNumber) {
-    return Math.pow(1.15, waveNumber);
-  },
+dmgMultiplierFor(waveNumber) {
+  return 1 + (waveNumber * 0.2);
+},
 
   // Jumlah musuh
   enemyCountFor(waveNumber) {

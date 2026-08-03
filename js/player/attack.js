@@ -64,7 +64,7 @@ G.player.attack = {
       if (!inRange) return;
 
       const isCrit = Math.random() < player.stats.totalCrit;
-      const dmg = Math.round(player.stats.totalAtk * (isCrit ? 1.8 : 1) * dmgMult);
+      const dmg = Math.round(player.stats.totalAtk * (isCrit ? player.stats.totalCritMultiplier : 1) * dmgMult);
       enemy.takeDamage(dmg);
 
       player.chargeAwakening(dmg * G.CONST.AWAKENING.chargeFromDamageDealt);

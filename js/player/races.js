@@ -25,22 +25,26 @@ G.player.RACES = [
     id: 'undead', name: 'Undead', emoji: '🧟',
     baseDamage: 6, hpStar: 4, defStar: 4, atkSpdStar: 2, critStar: 3, xpStar: 3, moveStar: 3,
     passiveText: 'Revive sekali tiap 120 detik.',
-    tradeoffText: 'Efek heal berkurang 50%'
+    tradeoffText: 'Efek heal berkurang 50%',
+    awakeningText: 'Undying Will: tidak bisa mati (HP minimal 1) selama aktif. Defense +50%.'
   },
   {
     id: 'elf', name: 'Elf', emoji: '🧝',
     baseDamage: 6, hpStar: 3, defStar: 2, atkSpdStar: 5, critStar: 3, xpStar: 3, moveStar: 3,
-    passiveText: 'Attack Speed tertinggi. Efek potion +15%.'
+    passiveText: 'Attack Speed tertinggi. Efek potion +15%.',
+    awakeningText: "Nature's Grace: Attack Speed & Move Speed +30%, efek potion naik jadi +50%."
   },
   {
     id: 'dwarf', name: 'Dwarf', emoji: '⛏️',
     baseDamage: 6, hpStar: 4, defStar: 5, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 2,
-    passiveText: 'Legendary Drop +15%.'
+    passiveText: 'Legendary Drop +15%.',
+    awakeningText: "Mountain's Wrath: Defense +40%, Damage +30%, Legendary Drop chance x2 selama aktif."
   },
   {
     id: 'beast', name: 'Beast', emoji: '🐺',
     baseDamage: 9, hpStar: 4, defStar: 3, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 3,
-    passiveText: 'Damage dasar tertinggi.'
+    passiveText: 'Damage dasar tertinggi.',
+    awakeningText: 'Feral Instinct: Damage +50%, Attack Speed +25%, tiap kill heal 5% Max HP.'
   },
   {
     id: 'demon', name: 'Demon', emoji: '😈',
@@ -56,10 +60,11 @@ G.player.RACES = [
     awakeningText: 'Blood Domain: serangan jadi area di sekitar pemain. Regen berubah jadi dari damage diterima: 2 HP/detik (+0.05% MaxHP/level), maksimal 15% Max HP/detik.'
   },
   {
-    id: 'anomaly', name: 'Anomaly', emoji: '🌀',
+  id: 'anomaly', name: 'Jack', emoji: '🌀',
     baseDamage: 2, hpStar: 3, defStar: 3, atkSpdStar: 3, critStar: 3, xpStar: 3, moveStar: 3,
+    description: '"Discrimination disgusted him. He grew weary of a system that sought to control him. So he took control of himself, and in doing so, gained the ability to wield every branch of knowledge."',
     passiveText: 'Semua stat +15%.',
-    awakeningText: 'Pilih 2 race lain untuk copy passive-nya sekaligus'
+    awakeningText: 'Overclock: tiap meter penuh & tekan F, dapat 1 stack ATK/DEF/SPD/Max HP +5% (naik 20%/stack, maks 15 stack). Tiap stack bertahan 60 detik, di-refresh kalau di-charge & tekan F lagi sebelum abis.'
   }
 ];
 

@@ -49,7 +49,19 @@ class Player {
     this.awakeningMeter = 0;
     this.awakeningActive = false;
     this.awakeningTimer = 0;
-    this._awakenAnomalyBonus = null;
+    this._awakenUndeadBonus = null;
+    this._awakenElfBonus = null;
+    this._awakenDwarfBonus = null;
+    this._awakenBeastBonus = null;
+
+    // --- Skill system (pilihan tiap kelipatan 5 level) ---
+    this.skills = {};            // { skillId: level }
+    this.skillOrder = [];        // urutan didapat = urutan hotkey 1..9
+    this.skillCooldowns = {};    // { skillId: sisa cooldown detik }
+    this.skillBuffs = {};        // buff aktif dari skill (tortoise/courage/hawkeye/elfblessing/jackOverclock)
+    this.pendingSkillChoices = 0; // berapa kali modal pilihan skill masih harus ditampilkan
+    this.damageReductionBonus = 0; // dari Tortoise Shield
+    this.debuffImmuneCount = 0;    // >0 = kebal debuff (Elf's Blessing)
   }
 
   hasPassive(raceId) {
@@ -61,6 +73,10 @@ class Player {
     if (this.hasPassive('human')) types.push('human');
     if (this.hasPassive('vampire')) types.push('vampire');
     if (this.hasPassive('demon')) types.push('demon');
+    if (this.hasPassive('undead')) types.push('undead');
+    if (this.hasPassive('elf')) types.push('elf');
+    if (this.hasPassive('dwarf')) types.push('dwarf');
+    if (this.hasPassive('beast')) types.push('beast');
     if (types.length === 0 && this.raceId === 'anomaly') types.push('anomaly');
     return types;
   }
@@ -78,6 +94,14 @@ class Player {
     this.updateAwakening(dt, input);
     this.updateVampireRegen(dt);
     this.updateDemonDomain(dt, enemies, callbacks.onHitEnemy);
+G.player.skills.update(
+    this,
+    dt,
+    input,
+    enemies,
+    callbacks.onHitEnemy,
+    callbacks.spawnEffect
+);
   }
 
   pickupArmor(id, setId, pieceType) {
@@ -196,6 +220,8 @@ class Player {
     if (input.wasPressed('KeyF') && this.canActivateAwakening()) {
       this.activateAwakening();
     }
+
+    // Durasi tetap buat SEMUA race (termasuk Jack) — otomatis nonaktif sendiri pas abis.
     if (this.awakeningActive) {
       this.awakeningTimer -= dt;
       if (this.awakeningTimer <= 0) this.deactivateAwakening();
@@ -210,18 +236,51 @@ class Player {
     if (this.awakeningTypes.includes('demon')) {
       this._primordialStacks = 0;
     }
+
+    // Overclock: semua stats (ATK/DEF/SPD/Max HP) +50% selama aktif.
     if (this.awakeningTypes.includes('anomaly')) {
       const bonus = {
-        atk: Math.round(this.stats.totalAtk * 0.3),
-        def: Math.round(this.stats.totalDef * 0.3),
-        speed: Math.round(this.stats.totalSpeed * 0.3),
-        critChance: 0.1
+        atk: Math.round(this.stats.totalAtk * 0.5),
+        def: Math.round(this.stats.totalDef * 0.5),
+        speed: Math.round(this.stats.totalSpeed * 0.5),
+        maxHP: Math.round(this.stats.totalMaxHP * 0.5)
       };
       this._awakenAnomalyBonus = bonus;
       this.stats.bonus.atk += bonus.atk;
       this.stats.bonus.def += bonus.def;
       this.stats.bonus.speed += bonus.speed;
-      this.stats.bonus.critChance += bonus.critChance;
+      this.stats.bonus.maxHP += bonus.maxHP;
+      this.stats.hp += bonus.maxHP;
+    }
+
+    if (this.awakeningTypes.includes('undead')) {
+      const bonus = { def: Math.round(this.stats.totalDef * 0.5) };
+      this._awakenUndeadBonus = bonus;
+      this.stats.bonus.def += bonus.def;
+    }
+
+    if (this.awakeningTypes.includes('elf')) {
+      const bonus = { speed: Math.round(this.stats.totalSpeed * 0.3) };
+      this._awakenElfBonus = bonus;
+      this.stats.bonus.speed += bonus.speed;
+      this.attackCooldownMult = (this.attackCooldownMult || 1) / 1.3;
+    }
+
+    if (this.awakeningTypes.includes('dwarf')) {
+      const bonus = {
+        def: Math.round(this.stats.totalDef * 0.4),
+        atk: Math.round(this.stats.totalAtk * 0.3)
+      };
+      this._awakenDwarfBonus = bonus;
+      this.stats.bonus.def += bonus.def;
+      this.stats.bonus.atk += bonus.atk;
+    }
+
+    if (this.awakeningTypes.includes('beast')) {
+      const bonus = { atk: Math.round(this.stats.totalAtk * 0.5) };
+      this._awakenBeastBonus = bonus;
+      this.stats.bonus.atk += bonus.atk;
+      this.attackCooldownMult = (this.attackCooldownMult || 1) / 1.25;
     }
   }
 
@@ -234,9 +293,122 @@ class Player {
       this.stats.bonus.atk -= b.atk;
       this.stats.bonus.def -= b.def;
       this.stats.bonus.speed -= b.speed;
-      this.stats.bonus.critChance -= b.critChance;
+      this.stats.bonus.maxHP -= b.maxHP;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
       this._awakenAnomalyBonus = null;
     }
+
+    if (this.awakeningTypes.includes('undead') && this._awakenUndeadBonus) {
+      this.stats.bonus.def -= this._awakenUndeadBonus.def;
+      this._awakenUndeadBonus = null;
+    }
+
+    if (this.awakeningTypes.includes('elf') && this._awakenElfBonus) {
+      this.stats.bonus.speed -= this._awakenElfBonus.speed;
+      this.attackCooldownMult *= 1.3;
+      this._awakenElfBonus = null;
+    }
+
+    if (this.awakeningTypes.includes('dwarf') && this._awakenDwarfBonus) {
+      this.stats.bonus.def -= this._awakenDwarfBonus.def;
+      this.stats.bonus.atk -= this._awakenDwarfBonus.atk;
+      this._awakenDwarfBonus = null;
+    }
+
+    if (this.awakeningTypes.includes('beast') && this._awakenBeastBonus) {
+      this.stats.bonus.atk -= this._awakenBeastBonus.atk;
+      this.attackCooldownMult *= 1.25;
+      this._awakenBeastBonus = null;
+    }
+  }
+
+  // --- Buff generik dari skill aktif (Tortoise Shield, Warrior's Courage, Hawk Eye, Elf's Blessing, Jack Overclock) ---
+  // pctBonus = { atkPct, defPct, hpPct, speedPct, damageReductionPct, critChancePct, critDamagePct, debuffImmune }
+  // opts.maxStacks & opts.stackGrowth: kalau skill di-cast ulang SEBELUM buff lama habis,
+  // durasinya di-reset DAN besaran efeknya naik (growth) dari nilai stack sebelumnya,
+  // numpuk sampai maxStacks kali. Default maxStacks 1 = gak stacking, cuma refresh durasi.
+  applySkillBuff(id, pctBonus, duration, opts = {}) {
+    const maxStacks = opts.maxStacks || 1;
+    const growth = opts.stackGrowth || 0;
+
+    const existing = this.skillBuffs[id];
+    let stacks = 1;
+
+    if (existing) {
+      this._revertBuffFlatBonus(existing.flatBonus);
+      stacks = Math.min(maxStacks, existing.stacks + 1);
+    }
+
+    // stack ke-N = nilai awal * (1 + growth)^(N-1). Contoh growth 20%: 20% -> 24% -> 28.8% -> ...
+    const growFactor = growth > 0 ? Math.pow(1 + growth, stacks - 1) : 1;
+    const scaledPct = {};
+    Object.keys(pctBonus).forEach((k) => {
+      scaledPct[k] = typeof pctBonus[k] === 'number' ? pctBonus[k] * growFactor : pctBonus[k];
+    });
+
+    const flatBonus = this._pctBuffToFlat(scaledPct);
+    this._applyBuffFlatBonus(flatBonus);
+
+    this.skillBuffs[id] = { flatBonus, pct: scaledPct, stacks, maxStacks, growth, timeLeft: duration };
+  }
+
+  // Konversi persen skill (relatif ke stat total SAAT INI, di luar kontribusi buff ini sendiri
+  // karena udah di-revert dulu sebelum dipanggil) jadi angka flat yang ditambahkan ke stats.
+  _pctBuffToFlat(pct) {
+    const flat = {};
+    if (pct.atkPct) flat.atk = Math.round(this.stats.totalAtk * pct.atkPct);
+    if (pct.defPct) flat.def = Math.round(this.stats.totalDef * pct.defPct);
+    if (pct.hpPct) flat.maxHP = Math.round(this.stats.totalMaxHP * pct.hpPct);
+    if (pct.speedPct) flat.speed = Math.round(this.stats.totalSpeed * pct.speedPct);
+    if (pct.damageReductionPct) flat.damageReduction = pct.damageReductionPct;
+    if (pct.critChancePct) flat.critChance = pct.critChancePct;
+    if (pct.critDamagePct) flat.critMultiplier = pct.critDamagePct;
+    if (pct.debuffImmune) flat.debuffImmune = true;
+    return flat;
+  }
+
+  _applyBuffFlatBonus(flat) {
+    if (flat.atk) this.stats.bonus.atk += flat.atk;
+    if (flat.def) this.stats.bonus.def += flat.def;
+    if (flat.speed) this.stats.bonus.speed += flat.speed;
+    if (flat.maxHP) {
+      this.stats.bonus.maxHP += flat.maxHP;
+      this.stats.hp += flat.maxHP;
+    }
+    if (flat.critChance) this.stats.bonus.critChance += flat.critChance;
+    if (flat.critMultiplier) this.stats.bonus.critMultiplier += flat.critMultiplier;
+    if (flat.damageReduction) this.damageReductionBonus += flat.damageReduction;
+    if (flat.debuffImmune) this.debuffImmuneCount += 1;
+  }
+
+  _revertBuffFlatBonus(flat) {
+    if (!flat) return;
+    if (flat.atk) this.stats.bonus.atk -= flat.atk;
+    if (flat.def) this.stats.bonus.def -= flat.def;
+    if (flat.speed) this.stats.bonus.speed -= flat.speed;
+    if (flat.maxHP) {
+      this.stats.bonus.maxHP -= flat.maxHP;
+      this.stats.hp = Math.min(this.stats.hp, this.stats.totalMaxHP);
+    }
+    if (flat.critChance) this.stats.bonus.critChance -= flat.critChance;
+    if (flat.critMultiplier) this.stats.bonus.critMultiplier -= flat.critMultiplier;
+    if (flat.damageReduction) this.damageReductionBonus -= flat.damageReduction;
+    if (flat.debuffImmune) this.debuffImmuneCount = Math.max(0, this.debuffImmuneCount - 1);
+  }
+
+  removeSkillBuff(id) {
+    const active = this.skillBuffs[id];
+    if (!active) return;
+    this._revertBuffFlatBonus(active.flatBonus);
+    delete this.skillBuffs[id];
+  }
+
+  updateSkillBuffs(dt) {
+    Object.keys(this.skillBuffs).forEach((id) => {
+      const b = this.skillBuffs[id];
+      b.timeLeft -= dt;
+      if (b.timeLeft <= 0) this.removeSkillBuff(id);
+    });
   }
 
   updateRevive(dt) {
@@ -255,12 +427,18 @@ class Player {
 
   registerKill() {
     this.demonKillStacks += 1;
+    if (this.awakeningActive && this.awakeningTypes.includes('beast')) {
+      this.heal(this.stats.totalMaxHP * 0.05);
+    }
   }
 
   heal(amount) {
     let final = amount;
     if (this.hasPassive('undead')) final *= 0.5;
-    if (this.hasPassive('elf')) final *= 1.15;
+    if (this.hasPassive('elf')) {
+      const elfAwakened = this.awakeningActive && this.awakeningTypes.includes('elf');
+      final *= elfAwakened ? 1.5 : 1.15;
+    }
     this.stats.heal(final);
   }
 
@@ -276,6 +454,7 @@ class Player {
   }
 
   applyPoison(dps, duration) {
+    if (this.debuffImmuneCount > 0) return; // lagi kebal debuff (Elf's Blessing)
     const finalDps = this.hasPassive('vampire') ? dps * 2 : dps;
     this.poison.active = true;
     this.poison.dps = Math.max(this.poison.dps, finalDps);
@@ -293,18 +472,38 @@ class Player {
     if (this.invulnTimer > 0) return 0;
 
     let incoming = amount;
+    if (this.damageReductionBonus > 0) {
+      incoming *= (1 - G.utils.math.clamp(this.damageReductionBonus, 0, 0.9));
+    }
     if (this.awakeningActive && this.awakeningTypes.includes('demon')) {
       incoming *= 0.75;
     }
 
-    const dealt = this.stats.takeDamage(incoming);
+    let dealt = this.stats.takeDamage(incoming);
+
+    if (this.awakeningActive && this.awakeningTypes.includes('undead') && this.stats.hp <= 0) {
+      this.stats.hp = 1;
+    }
+
     this.invulnTimer = 0.6;
     this.chargeAwakening(dealt * G.CONST.AWAKENING.chargeFromDamageTaken);
     return dealt;
   }
 
   grantExp(amount) {
-    return this.levelSystem.grantExp(Math.round(amount * this.expMultiplier));
+    const oldLevel = this.levelSystem.level;
+    const gained = this.levelSystem.grantExp(Math.round(amount * this.expMultiplier));
+
+    if (gained > 0) {
+      const interval = G.CONST.SKILL.levelInterval;
+      const oldMilestone = Math.floor(oldLevel / interval);
+      const newMilestone = Math.floor(this.levelSystem.level / interval);
+      if (newMilestone > oldMilestone) {
+        this.pendingSkillChoices += (newMilestone - oldMilestone);
+      }
+    }
+
+    return gained;
   }
 
   addItem(itemId) {
@@ -360,6 +559,27 @@ class Player {
       ctx.stroke();
       ctx.restore();
     }
+
+    // --- Aura buff dari skill (Tortoise Shield / Warrior's Courage / Elf's Blessing / Hawk Eye / Jack Overclock) ---
+    const buffAuras = [
+      { id: 'tortoise', color: '#4aa3ff', dash: false },
+      { id: 'courage', color: '#ff8a3d', dash: false },
+      { id: 'elfblessing', color: '#7cd66b', dash: [3, 3] },
+      { id: 'hawkeye', color: '#ffd75e', dash: [2, 4] },
+      { id: 'jackOverclock', color: '#ff5fd1', dash: [2, 2] }
+    ];
+    buffAuras.forEach((aura, i) => {
+      if (!this.skillBuffs[aura.id]) return;
+      ctx.save();
+      ctx.globalAlpha = 0.4 + Math.sin(performance.now() / 180) * 0.15;
+      ctx.strokeStyle = aura.color;
+      ctx.lineWidth = 2;
+      if (aura.dash) ctx.setLineDash(aura.dash);
+      ctx.beginPath();
+      ctx.arc(screen.x, screen.y, this.radius + 14 + i * 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    });
 
     if (this.invulnTimer > 0 && Math.floor(this.invulnTimer * 20) % 2 === 0) {
       ctx.globalAlpha = 0.4;

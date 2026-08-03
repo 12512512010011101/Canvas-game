@@ -15,7 +15,8 @@ G.chest.chestRNG = {
     if (player && player.hasPassive && player.hasPassive('dwarf')) {
       const table = this.rarityTable.map((r) => ({ ...r }));
       const legendary = table.find((r) => r.rarity === 'legendary');
-      if (legendary) legendary.weight *= 1.15;
+      const dwarfAwakened = player.awakeningActive && player.awakeningTypes && player.awakeningTypes.includes('dwarf');
+      if (legendary) legendary.weight *= dwarfAwakened ? 2 : 1.15;
       return G.core.rng.weightedPick(table).rarity;
     }
     return G.core.rng.weightedPick(this.rarityTable).rarity;

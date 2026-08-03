@@ -5,6 +5,8 @@ G.core = G.core || {};
 G.core.touchControls = {
   input: null,
   isTouch: false,
+  skillButtons: [],
+  skillRowEl: null,
 
   init(input) {
     this.input = input;
@@ -12,6 +14,7 @@ G.core.touchControls = {
     if (!this.isTouch) return;
 
     document.body.classList.add('touch-device');
+    this.skillRowEl = document.getElementById('touch-skill-row');
     this._setupJoystick();
     this._setupButtons();
   },
@@ -100,6 +103,93 @@ G.core.touchControls = {
         e.preventDefault();
         btn.classList.remove('active');
       });
+    });
+  },
+
+  // Dipanggil tiap frame dari game.js. Bikin ulang tombol skill kalau jumlah
+  // skill yang dimiliki player berubah (baru dapet skill baru dari level up),
+  // terus update cooldown/level-nya tiap frame.
+  syncSkillBar(player) {
+    if (!this.isTouch || !this.skillRowEl || !player) return;
+
+    const order = player.skillOrder || [];
+
+    if (this.skillButtons.length !== order.length) {
+      this._rebuildSkillButtons(order);
+    }
+
+    order.forEach((skillId, i) => {
+      const ref = this.skillButtons[i];
+      if (!ref) return;
+
+      const def = G.skills.getById(skillId);
+      const level = player.skills[skillId] || 1;
+      const cd = player.skillCooldowns[skillId] || 0;
+      const stats = G.skills.getLevelStats(skillId, level);
+      const ready = cd <= 0;
+      const buff = player.skillBuffs[skillId];
+
+      ref.icon.textContent = def ? def.icon : '?';
+      ref.lv.textContent = `Lv${level}`;
+      ref.stack.textContent = (buff && buff.stacks > 1) ? `x${buff.stacks}` : '';
+
+      if (ready) {
+        ref.cd.style.height = '0%';
+        ref.cd.textContent = '';
+        ref.btn.classList.remove('on-cooldown');
+      } else {
+        const pct = Math.max(0, Math.min(100, (cd / stats.cooldown) * 100));
+        ref.cd.style.height = `${pct}%`;
+        ref.cd.textContent = cd.toFixed(1);
+        ref.btn.classList.add('on-cooldown');
+      }
+
+      ref.btn.classList.toggle('buff-active', !!buff);
+    });
+  },
+
+  _rebuildSkillButtons(order) {
+    this.skillRowEl.innerHTML = '';
+    this.skillButtons = order.map((skillId, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'touch-skill-btn';
+
+      const key = document.createElement('span');
+      key.className = 'touch-skill-key';
+      key.textContent = `${i + 1}`;
+
+      const icon = document.createElement('span');
+      icon.className = 'touch-skill-icon';
+
+      const lv = document.createElement('span');
+      lv.className = 'touch-skill-lv';
+
+      const stack = document.createElement('span');
+      stack.className = 'touch-skill-stack';
+
+      const cd = document.createElement('span');
+      cd.className = 'touch-skill-cd';
+
+      btn.appendChild(cd);
+      btn.appendChild(icon);
+      btn.appendChild(key);
+      btn.appendChild(lv);
+      btn.appendChild(stack);
+
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        this.input.simulateKeyPress(`Digit${i + 1}`);
+        btn.classList.add('active');
+      }, { passive: false });
+
+      btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        btn.classList.remove('active');
+      });
+
+      this.skillRowEl.appendChild(btn);
+      return { btn, icon, lv, cd, stack };
     });
   }
 };

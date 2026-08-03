@@ -9,6 +9,7 @@ window.G = window.G || {};
   G.core.input.init(canvas);
   G.core.touchControls.init(G.core.input);
   G.ui.raceSelect.init();
+  G.ui.skillsBook.init();
 
   const menuEl = document.getElementById('main-menu');
   const loadingEl = document.getElementById('loading-text');
@@ -24,7 +25,8 @@ window.G = window.G || {};
   blueBullet: 'assets/items/blue_bullet.png',
   purpleBullet: 'assets/items/purple_bullet.png',
   goblinSheet: 'assets/enemy/goblin/goblin.png',
-  witchSheet: 'assets/witch/witch.png'
+  witchSheet: 'assets/witch/witch.png',
+  archerSheet: 'assets/archer/archer.png'
 });
     loadingEl.textContent = 'Siap dimainkan!';
     startBtn.disabled = false;

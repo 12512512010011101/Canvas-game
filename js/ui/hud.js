@@ -191,26 +191,71 @@ G.ui.hud = {
     }
 
     if (player.awakeningEligible) {
-      const pct = player.awakeningActive ? 1 : player.awakeningMeter / G.CONST.AWAKENING.max;
-      const ready = !player.awakeningActive && pct >= 1;
-      const bw = 224, bh = 22;
+  const bw = 224, bh = 22;
+  this.drawFrame(ctx, pad, badgeY, bw, bh, 6);
 
-      this.drawFrame(ctx, pad, badgeY, bw, bh, 6);
-      const label = player.awakeningActive
-        ? `⚡ AWAKENING! (${player.awakeningTimer.toFixed(1)}s)`
-        : (ready ? '⚡ Tekan F untuk Awakening!' : `⚡ Awakening ${Math.floor(pct * 100)}%`);
-      const barColorLight = player.awakeningActive ? '#ff8fe3' : (ready ? '#ffe28a' : '#c9a6ff');
-      const barColorDark = player.awakeningActive ? '#a8127e' : (ready ? '#b8860b' : '#5b2a9e');
+  const isJack = player.awakeningTypes?.includes('anomaly');
 
-      this.drawBar(ctx, pad + 4, badgeY + 4, bw - 8, bh - 8, pct, barColorLight, barColorDark, null);
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillStyle = '#000';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label, pad + 9, badgeY + bh / 2 + 1);
-      ctx.fillStyle = ready || player.awakeningActive ? '#fff6d8' : '#f0e4ff';
-      ctx.fillText(label, pad + 8, badgeY + bh / 2);
+  if (isJack) {
+    const buff = player.skillBuffs.jackOverclock;
+    const pct = Math.min(1, player.awakeningMeter / G.CONST.AWAKENING.max);
+    const ready = pct >= 1;
+
+    const label = buff
+      ? `🌀 Overclock x${buff.stacks} (${buff.timeLeft.toFixed(1)}s)${ready ? ' - Tekan F!' : ''}`
+      : (ready
+          ? '🌀 Tekan F untuk Overclock!'
+          : `🌀 Overclock ${Math.floor(pct * 100)}%`);
+
+    this.drawBar(
+      ctx,
+      pad + 4,
+      badgeY + 4,
+      bw - 8,
+      bh - 8,
+      pct,
+      ready ? '#ffe28a' : '#c9a6ff',
+      ready ? '#b8860b' : '#5b2a9e',
+      null
+    );
+
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, pad + 8, badgeY + bh / 2);
+  } else {
+    const pct = player.awakeningActive ? 1 : player.awakeningMeter / G.CONST.AWAKENING.max;
+    const ready = !player.awakeningActive && pct >= 1;
+
+    const label = player.awakeningActive
+      ? `⚡ AWAKENING! (${player.awakeningTimer.toFixed(1)}s)`
+      : (ready
+          ? '⚡ Tekan F untuk Awakening!'
+          : `⚡ Awakening ${Math.floor(pct * 100)}%`);
+
+    this.drawBar(
+      ctx,
+      pad + 4,
+      badgeY + 4,
+      bw - 8,
+      bh - 8,
+      pct,
+      player.awakeningActive ? '#ff8fe3' : (ready ? '#ffe28a' : '#c9a6ff'),
+      player.awakeningActive ? '#a8127e' : (ready ? '#b8860b' : '#5b2a9e'),
+      null
+    );
+
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, pad + 8, badgeY + bh / 2);
+  }
+
+  badgeY += bh + 6;
     }
+    
 
     // ============ BANNER WAVE + GOLD (kanan atas) ============
     const bannerW = 200;
@@ -235,6 +280,69 @@ G.ui.hud = {
     ctx.fillStyle = '#ffd75e';
     ctx.fillText(`${player.gold}`, bx + bannerW - 10, by + 44);
 
+    this.drawSkillBar(ctx, player);
+
     ctx.restore();
+  },
+
+  drawSkillBar(ctx, player) {
+    if (!player.skillOrder || player.skillOrder.length === 0) return;
+
+    const size = 42;
+    const gap = 8;
+    const count = player.skillOrder.length;
+    const totalW = count * size + (count - 1) * gap;
+    let x = (G.CONST.CANVAS_W - totalW) / 2;
+    const y = G.CONST.CANVAS_H - size - 14;
+
+    player.skillOrder.forEach((skillId, i) => {
+      const skillDef = G.skills.getById(skillId);
+      const level = player.skills[skillId] || 1;
+      const cd = player.skillCooldowns[skillId] || 0;
+      const stats = G.skills.getLevelStats(skillId, level);
+      const ready = cd <= 0;
+      const buffActive = !!player.skillBuffs[skillId];
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(x, y, size, size);
+      ctx.strokeStyle = buffActive ? '#ff5fd1' : (ready ? '#6ee08a' : 'rgba(255,255,255,0.25)');
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, size, size);
+
+      ctx.font = '20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = ready ? 1 : 0.4;
+      ctx.fillText(skillDef ? skillDef.icon : '?', x + size / 2, y + size / 2 - 2);
+      ctx.globalAlpha = 1;
+
+      if (!ready) {
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        const pctLeft = cd / stats.cooldown;
+        ctx.fillRect(x, y + size * (1 - pctLeft), size, size * pctLeft);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(cd.toFixed(1), x + size / 2, y + size / 2 - 2);
+      }
+
+      ctx.fillStyle = '#ffd75e';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(`${i + 1}`, x + size / 2, y - 3);
+      ctx.fillStyle = '#9fd3ac';
+      ctx.fillText(`Lv${level}`, x + size / 2, y + size + 11);
+      const stackCount = player.skillBuffs[skillId] ? player.skillBuffs[skillId].stacks : 0;
+      if (stackCount > 1) {
+        ctx.fillStyle = '#ff5fd1';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`x${stackCount}`, x + 2, y + size - 3);
+        ctx.textAlign = 'center';
+      }
+
+      ctx.restore();
+      x += size + gap;
+    });
   }
 };

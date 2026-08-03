@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="css/menu.css" />
 </head>
 <body>
-<div id="app">
- 
+<div id="app"> 
+
   <!-- ===== Main Menu ===== -->
   <div id="main-menu" class="overlay visible">
     <div class="menu-box">
@@ -19,12 +19,17 @@
       <p class="subtitle">Bertahan dari gelombang musuh, kumpulkan item dari chest!</p>
       <p id="loading-text">Memuat asset...</p>
       <button id="btn-start" disabled>Mulai Game</button>
+      <button id="btn-skills-book" class="btn-secondary">📖 Skills</button>
       <p id="best-score"></p>
       <div class="menu-controls">
-        WASD / Arrow — gerak<br/>
-        Space / Klik — serang<br/>
-        E — buka chest terdekat<br/>
-        I — inventory &nbsp; C — statistik &nbsp; Esc — pause
+        <span>🎮 WASD / Arrow</span><span>gerak</span>
+        <span>⚔️ Space / Klik</span><span>serang</span>
+        <span>📦 E</span><span>buka chest terdekat</span>
+        <span>🎒 I</span><span>inventory</span>
+        <span>📊 C</span><span>statistik</span>
+        <span>✨ F</span><span>awakening</span>
+        <span>🔢 1-9</span><span>skill</span>
+        <span>⏸ Esc</span><span>pause</span>
       </div>
     </div>
   </div>
@@ -37,6 +42,18 @@
     </div>
   </div>
 
+  <!-- ===== Skills Book Overlay (referensi 9 skill, dibuka dari main menu) ===== -->
+<div id="skills-book-overlay" class="overlay">
+  <div class="menu-box race-box">
+    <h1>📖 Skills</h1>
+    <p class="subtitle">Referensi semua skill yang bisa didapat tiap naik level. Angka di bawah menunjukkan level 1 &amp; level maksimal (5).</p>
+    <div id="skills-book-grid" class="race-grid"></div>
+    <div class="overlay-buttons">
+      <button id="btn-skills-book-close">Tutup</button>
+    </div>
+  </div>
+</div>
+
   <!-- ===== Pause Overlay ===== -->
   <div id="pause-overlay" class="overlay">
     <div class="menu-box">
@@ -46,6 +63,15 @@
         <button id="btn-save">Simpan Progress</button>
         <button id="btn-restart">Mulai Ulang</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== Skill Select Overlay (muncul tiap kelipatan 5 level) ===== -->
+  <div id="skill-select-overlay" class="overlay">
+    <div class="menu-box race-box">
+      <h1>⚡ Pilih Skill (Level <span id="skill-select-level"></span>)</h1>
+      <p class="subtitle">Pilih 1 dari 3 skill di bawah ini</p>
+      <div id="skill-select-grid" class="race-grid"></div>
     </div>
   </div>
 
@@ -69,23 +95,27 @@
 
   <!-- ===== Game Canvas ===== -->
   <canvas id="game-canvas" tabindex="-1"></canvas>
-  <div id="hud-hint">WASD gerak · Space serang · E buka chest · I inventory · C statistik · F Awakening · Esc pause</div>
+  <div id="hud-hint">WASD gerak · Space serang · E buka chest · I inventory · C statistik · F Awakening · 1-9 Skill · Esc pause</div>
 
   <!-- ===== Mobile Touch Controls (cuma nongol otomatis di device touch) ===== -->
   <div id="touch-joystick-base" class="touch-joystick-base">
     <div id="touch-joystick-knob" class="touch-joystick-knob"></div>
   </div>
+
+  <!-- Skill hotbar mobile: dibuat otomatis lewat JS (touchControls.js) sesuai skill yang dipunya player -->
+  <div id="touch-skill-row" class="touch-skill-row"></div>
+
   <div id="touch-menu-row" class="touch-menu-row">
-  <button id="touch-btn-i" class="touch-btn touch-btn-menu" type="button">I</button>
-  <button id="touch-btn-c" class="touch-btn touch-btn-menu" type="button">C</button>
-</div>
+    <button id="touch-btn-i" class="touch-btn touch-btn-menu" type="button">I</button>
+    <button id="touch-btn-c" class="touch-btn touch-btn-menu" type="button">C</button>
+  </div>
 
-<button id="touch-btn-f" class="touch-btn touch-btn-awakening" type="button">F</button>
+  <button id="touch-btn-f" class="touch-btn touch-btn-awakening" type="button">F</button>
 
-<div id="touch-button-row" class="touch-button-row">
-  <button id="touch-btn-e" class="touch-btn" type="button">E</button>
-  <button id="touch-btn-esc" class="touch-btn" type="button">✕</button>
-</div>
+  <div id="touch-button-row" class="touch-button-row">
+    <button id="touch-btn-e" class="touch-btn" type="button">E</button>
+    <button id="touch-btn-esc" class="touch-btn" type="button">✕</button>
+  </div>
 
 </div>
 
@@ -114,6 +144,9 @@
 <script src="js/items/luck.js"></script>
 <script src="js/items/armor.js"></script>
 
+<!-- skills (data + efek, dipakai player) -->
+<script src="js/skills/skillData.js"></script>
+
 <!-- player -->
 <script src="js/player/races.js"></script>
 <script src="js/player/stats.js"></script>
@@ -123,6 +156,7 @@
 <script src="js/player/movement.js"></script>
 <script src="js/player/attack.js"></script>
 <script src="js/player/gun.js"></script>
+<script src="js/player/skills.js"></script>
 <script src="js/player/player.js"></script>
 
 <!-- enemy -->
@@ -148,6 +182,8 @@
 <!-- ui -->
 <script src="js/ui/hud.js"></script>
 <script src="js/ui/raceSelect.js"></script>
+<script src="js/ui/skillSelect.js"></script>
+<script src="js/ui/skillsBook.js"></script>
 <script src="js/ui/inventory.js"></script>
 <script src="js/ui/statsMenu.js"></script>
 <script src="js/ui/pause.js"></script>

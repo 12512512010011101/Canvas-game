@@ -39,13 +39,29 @@ PLAYER_ROW_MAP: {
     attackRow: null, // isi angka row (0/1/2) kalau ada row khusus attack
     drawHeight: 56
   },
-  // assets/witch/witch.png -> sama, cuma 2 pose di kanvas 2240x320
+  // assets/witch/witch.png -> kanvas asli 2240x320, cell asli 80x64 (BUKAN 32x32 —
+  // sudah diukur manual dari file pngnya). walkRow=0 isinya cuma 10 frame yang valid,
+  // sisanya kolom kosong, makanya dipakai array walkFrames, bukan cols mentah.
   WITCH_SHEET: {
-    frames: [
-      { x: 24, y: 12, w: 513, h: 288 },
-      { x: 584, y: 12, w: 513, h: 288 }
-    ],
-    drawHeight: 64
+    frameW: 80,
+    frameH: 64,
+    cols: 28,
+    rows: 5,
+    walkRow: 0,
+    walkFrames: [0, 1, 2, 3, 5, 7, 8, 9, 10, 12], // kolom yang isinya frame valid di walkRow
+    drawHeight: 56
+  },
+  // assets/enemy/archer/archer.png -> sprite baru buat Archer (sebelumnya cuma lingkaran
+  // ungu polos). Di-crop manual dari asset marksman/archer.png (sheet aslinya 1600x4500,
+  // grid 16 kolom x 15 baris @ 100x300/cell, tapi banyak cell kosong). Cuma 2 frame pose
+  // yang dipakai (kotak archer siap panah), disusun jadi 1 file kecil 198x203 (2 kolom).
+  ARCHER_SHEET: {
+    frameW: 99,
+    frameH: 203,
+    cols: 2,
+    rows: 1,
+    walkRow: 0,
+    drawHeight: 52
   },
 
   // --- Icon sheet (assets/items/icons_sheet.png) ---
@@ -84,15 +100,35 @@ PLAYER_ROW_MAP: {
   },
 
   STORAGE_KEY: 'canvas_game_save_v1',
+  // Awakening: FIXED DURATION buat SEMUA race (termasuk Jack).
+  // Tekan F (meter penuh) -> aktif `duration` detik -> otomatis nonaktif sendiri.
+  // (Stacking buff race Jack itu HAL LAIN — itu di sistem skill buff di skill bar,
+  // lihat SKILL.jackBuffStackDuration & js/player/skills.js, bukan di sini.)
   AWAKENING: {
-    max: 100,                    // meter penuh di angka ini
-    duration: 6,                 // detik awakening aktif
-    chargeFromDamageDealt: 0.3,  // tiap 1 damage yang DIBERIKAN, meter naik segini
-    chargeFromDamageTaken: 0.3,   // tiap 1 damage yang DITERIMA, meter naik segini (lebih cepat, lebih beresiko)
+    max: 100,
+    duration: 7,
+    chargeFromDamageDealt: 0.3,
+    chargeFromDamageTaken: 0.3
   },
   DOMAIN: {
     demonBaseRadius: 90,   // radius area bakar Demon (px), dobel pas Domain Expansion aktif
     vampireRadius: 90      // radius serangan area Vampire pas Blood Domain aktif
+  },
+
+  // 1 yard = 15px. Dipilih biar konsisten sama skala AoE yang udah ada
+  // (radius Demon/Vampire domain = 90px = 6 yard).
+  YARD: 15,
+
+  SKILL: {
+    levelInterval: 1,
+    maxLevel: 5,
+    choiceCount: 3,
+    // Skill buff (Tortoise/Courage/Hawk Eye/Elf's Blessing) sekarang TOGGLE:
+    // - Race biasa: pencet -> aktif SELAMANYA, pencet lagi -> nonaktif + masuk cooldown skill itu.
+    // - Race Jack: pencet lagi (selagi aktif) -> nambah 1 stack, durasi di-refresh ke
+    //   jackBuffStackDuration detik (BUKAN durasi normal skill, dan BUKAN cooldown).
+    //   Kalau udah di stack maksimal (15) terus dipencet lagi, buff langsung mati.
+    jackBuffStackDuration: 6
   },
   BULLET_ICON: { x: 220, y: 130, w: 60, h: 60 },
 
