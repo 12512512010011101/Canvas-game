@@ -55,3 +55,72 @@ class Animator {
 }
 
 G.player.Animator = Animator;
+
+// --- Animator khusus buat race yang punya art sendiri (Demon/Elf/Beast/Dwarf) ---
+// Beda sama Animator biasa: sheet-nya BUKAN grid 4-arah (atas/bawah/kiri/kanan), cuma
+// 1 sudut pandang (menghadap kanan) dengan sedikit frame buat animasi napas/idle.
+// Jadi arah kiri disimulasikan dengan FLIP horizontal, dan arah atas/bawah pakai
+// sprite yang sama apa adanya (keterbatasan asset, bukan bug).
+class PortraitAnimator {
+  constructor(image, frameW, frameH, frameCount, drawHeight) {
+    this.image = image;
+    this.frameW = frameW;
+    this.frameH = frameH;
+    this.frameCount = frameCount;
+    this.drawHeight = drawHeight;
+
+    this.direction = 'down';
+    this.moving = false;
+    this.frameIndex = 0;
+    this.frameTimer = 0;
+  }
+
+  setState(direction, moving) {
+    this.direction = direction;
+    this.moving = moving;
+  }
+
+  update(dt) {
+    this.frameTimer += dt;
+    // gerak -> gantian frame lebih cepat (kesan jalan), diam -> pelan (kesan napas)
+    const frameDuration = this.moving ? 0.15 : 0.5;
+    if (this.frameTimer >= frameDuration) {
+      this.frameTimer = 0;
+      this.frameIndex = (this.frameIndex + 1) % this.frameCount;
+    }
+  }
+
+  draw(ctx, x, y) {
+    const { frameW, frameH, drawHeight } = this;
+    const drawW = drawHeight * (frameW / frameH);
+    const sx = this.frameIndex * frameW;
+    const sy = 0;
+    const flip = this.direction === 'left';
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(x), Math.round(y));
+    if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(
+      this.image,
+      sx, sy, frameW, frameH,
+      -drawW / 2, -drawHeight / 2,
+      drawW, drawHeight
+    );
+    ctx.restore();
+  }
+}
+
+G.player.PortraitAnimator = PortraitAnimator;
+
+// Factory: pilih animator yang cocok berdasarkan race. Kalau race punya art sendiri
+// (ada di G.CONST.RACE_ANIM dan gambarnya berhasil dimuat), pakai PortraitAnimator.
+// Kalau enggak, fallback ke Animator biasa (run_anim_sheet.png, 4 arah).
+G.player.createAnimator = function (images, raceId) {
+  const info = G.CONST.RACE_ANIM[raceId];
+  const img = images && images.raceSprites && images.raceSprites[raceId];
+  if (info && img) {
+    return new G.player.PortraitAnimator(img, info.frameW, info.frameH, info.frames, info.drawHeight);
+  }
+  return new G.player.Animator(images.playerSheet);
+};

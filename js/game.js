@@ -29,9 +29,18 @@ class Game {
   }
 
 _setupPlayer() {
-    this.player = new G.player.Player(this.worldW / 2, this.worldH / 2, this.assets.playerSheet, this.raceId, this.mimicRaceIds);
+    const playerImages = {
+      playerSheet: this.assets.playerSheet,
+      raceSprites: {
+        demon: this.assets.demonSheet,
+        elf: this.assets.elfSheet,
+        beast: this.assets.beastSheet,
+        dwarf: this.assets.dwarfSheet
+      }
+    };
+    this.player = new G.player.Player(this.worldW / 2, this.worldH / 2, playerImages, this.raceId, this.mimicRaceIds);
     G.items.iconImage = this.assets.iconsSheet;
-    G.enemy.sprites = { goblin: this.assets.goblinSheet, witch: this.assets.witchSheet, archer: this.assets.archerSheet };
+    G.enemy.sprites = { goblin: this.assets.goblinSheet, witch: this.assets.witchSheet, archer: this.assets.archerSheet, boss: this.assets.bossSheet };
     const starter = G.items.getById('sword_iron');
     starter.applyTo(this.player);
     this.player.addItem(starter.id);

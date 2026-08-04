@@ -51,17 +51,41 @@ PLAYER_ROW_MAP: {
     walkFrames: [0, 1, 2, 3, 5, 7, 8, 9, 10, 12], // kolom yang isinya frame valid di walkRow
     drawHeight: 56
   },
-  // assets/enemy/archer/archer.png -> sprite baru buat Archer (sebelumnya cuma lingkaran
-  // ungu polos). Di-crop manual dari asset marksman/archer.png (sheet aslinya 1600x4500,
-  // grid 16 kolom x 15 baris @ 100x300/cell, tapi banyak cell kosong). Cuma 2 frame pose
-  // yang dipakai (kotak archer siap panah), disusun jadi 1 file kecil 198x203 (2 kolom).
+  // assets/archer/archer.png -> sheet mentah 1600x4500. FIX: grid asli itu 4 kolom x 15
+  // baris @ 400x300/cell (BUKAN 16x203 seperti sebelumnya — angka lama itu nyisa dari file
+  // crop yang udah gak ada, makanya kepotong ngasal / keliatan "block"). row 0 udah dicek
+  // manual isinya 4 pose archer yang bersih (gak ke-crop aneh).
   ARCHER_SHEET: {
-    frameW: 99,
-    frameH: 203,
-    cols: 2,
-    rows: 1,
+    frameW: 400,
+    frameH: 300,
+    cols: 4,
+    rows: 15,
     walkRow: 0,
-    drawHeight: 52
+    drawHeight: 70
+  },
+
+  // assets/boss/boss.png -> grid rapi 4 kolom x 4 baris @ 184x184/cell.
+  // row 0 = idle (mulut buka-tutup), row 1 = pose nyerang (lengan ngayun).
+  BOSS_SHEET: {
+    frameW: 184,
+    frameH: 184,
+    cols: 4,
+    idleRow: 0,
+    attackRow: 1,
+    drawHeight: 100
+  },
+
+  // Sprite khusus per-race (hasil crop manual dari assets/player/<Race>/*.png asli).
+  // Tiap file isinya strip horizontal 2 frame (buat animasi idle pelan-pelan/"napas").
+  // Race yang gak ada di sini (human, undead, vampire, anomaly) tetap pakai
+  // assets/player/run_anim_sheet.png yang lama (belum ada art khusus).
+  // Art aslinya cuma 1 sudut pandang (menghadap kanan), makanya pas jalan ke kiri
+  // sprite-nya di-flip horizontal di kode (lihat PortraitAnimator), bukan asset baru.
+  RACE_ANIM: {
+    demon: { frameW: 121, frameH: 100, frames: 2, drawHeight: 62 },
+    elf:   { frameW: 82,  frameH: 148, frames: 2, drawHeight: 70 },
+    beast: { frameW: 87,  frameH: 106, frames: 2, drawHeight: 54 },
+    dwarf: { frameW: 138, frameH: 103, frames: 2, drawHeight: 58 }
   },
 
   // --- Icon sheet (assets/items/icons_sheet.png) ---
@@ -130,7 +154,10 @@ PLAYER_ROW_MAP: {
     //   Kalau udah di stack maksimal (15) terus dipencet lagi, buff langsung mati.
     jackBuffStackDuration: 6
   },
-  BULLET_ICON: { x: 220, y: 130, w: 60, h: 60 },
+  // FIX: rect lama {220,130,60,60} motong pas di tengah 2 icon sekaligus (bocor ke icon
+  // sebelah = keliatan bug). Sheet blue_bullet.png/purple_bullet.png grid-nya rapi per
+  // 96x96, cell bola/proyektil yang bersih ada di kolom-3 baris-2 -> (204, 96).
+  BULLET_ICON: { x: 204, y: 96, w: 96, h: 96 },
 
   GUN: {
     purpleAtLevel: 20,

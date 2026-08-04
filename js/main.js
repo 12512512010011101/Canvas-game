@@ -19,6 +19,10 @@ window.G = window.G || {};
   try {
     assets = await G.utils.helper.loadImages({
   playerSheet: 'assets/player/run_anim_sheet.png',
+  demonSheet: 'assets/player/Demon/demon_idle.png',
+  elfSheet: 'assets/player/Elf/elf_idle.png',
+  beastSheet: 'assets/player/beast/beast_idle.png',
+  dwarfSheet: 'assets/player/Drawf/dwarf_idle.png',
   iconsSheet: 'assets/items/icons_sheet.png',
   armourSheet: 'assets/items/armour.png',
   potionSheet: 'assets/items/potion.png',
@@ -26,7 +30,8 @@ window.G = window.G || {};
   purpleBullet: 'assets/items/purple_bullet.png',
   goblinSheet: 'assets/enemy/goblin/goblin.png',
   witchSheet: 'assets/witch/witch.png',
-  archerSheet: 'assets/archer/archer.png'
+  archerSheet: 'assets/archer/archer.png',
+  bossSheet: 'assets/boss/boss.png'
 });
     loadingEl.textContent = 'Siap dimainkan!';
     startBtn.disabled = false;

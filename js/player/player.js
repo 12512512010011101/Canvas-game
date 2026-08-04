@@ -3,7 +3,7 @@ window.G = window.G || {};
 G.player = G.player || {};
 
 class Player {
-  constructor(x, y, image, raceId = 'human', mimicRaceIds = []) {
+  constructor(x, y, images, raceId = 'human', mimicRaceIds = []) {
     this.x = x;
     this.y = y;
     this.radius = 14;
@@ -19,7 +19,7 @@ class Player {
 
     this.expSystem = new G.player.ExpSystem();
     this.levelSystem = new G.player.LevelSystem(this.stats, this.expSystem);
-    this.animator = new G.player.Animator(image);
+    this.animator = G.player.createAnimator(images, this.raceId);
 
     this.attackTimer = 0;
     this.swingTimer = 0;
