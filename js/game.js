@@ -26,10 +26,12 @@ class Game {
     this._setupPlayer();
     this._setupWaveManager();
     this._setupUI();
+    this._setupMultiplayer();
   }
 
-_setupPlayer() {
-    const playerImages = {
+  // Objek gambar buat animator player (dipakai player lokal maupun animator player lain)
+  _buildPlayerImages() {
+    return {
       playerSheet: this.assets.playerSheet,
       raceSprites: {
         demon: this.assets.demonSheet,
@@ -38,6 +40,99 @@ _setupPlayer() {
         dwarf: this.assets.dwarfSheet
       }
     };
+  }
+
+  // Fase 2 multiplayer: host jalanin wave/enemy asli & nyebarin datanya, guest cuma
+  // nerima & gambar (gak jalanin AI/spawn sendiri). Kalau main solo (gak ada roomCode),
+  // semuanya jalan normal kayak sebelumnya -- gak ada bedanya sama sekali.
+  _setupMultiplayer() {
+    this.remoteAnimators = {};
+    this._mpSendTimer = 0;
+    this._enemyStateTimer = 0;
+
+    this.mpMode = 'solo';
+    if (G.multiplayer && G.multiplayer.roomCode) {
+      this.mpMode = G.multiplayer.isHost ? 'host' : 'guest';
+    }
+
+    if (this.mpMode === 'guest') {
+      // guest gak spawn musuh sendiri, nunggu data pertama dari host
+      this.waveManager.enemies = [];
+      G.multiplayer.onEnemyState = (enemies) => this._applyRemoteEnemyState(enemies);
+      G.multiplayer.onKillReward = (exp) => {
+        this.player.registerKill();
+        const levels = this.player.grantExp(exp);
+        if (levels > 0) this.pushFloatingText(this.player.x, this.player.y - 30, 'LEVEL UP!', '#2ecc71');
+      };
+    }
+
+    if (this.mpMode === 'host') {
+      G.multiplayer.onAttackReport = (payload) => this._applyRemoteAttack(payload);
+    }
+  }
+
+  // --- GUEST: bikin "boneka" musuh dari data host, reuse class asli biar sprite/animasi sama ---
+  _createPuppetEnemy(data) {
+    let e;
+    if (data.type === 'archer') e = new G.enemy.Archer(data.x, data.y, 1, 1);
+    else if (data.type === 'poison') e = new G.enemy.PoisonEnemy(data.x, data.y, 1, 1);
+    else if (data.type === 'boss') e = new G.enemy.Boss(data.x, data.y, 1);
+    else e = new G.enemy.Goblin(data.x, data.y, 1, 1);
+
+    e.id = data.id;
+    e.isPuppet = true; // tanda: jangan jalanin AI, jangan ubah HP lokal pas takeDamage()
+    return e;
+  }
+
+  // --- GUEST: dipanggil tiap nerima snapshot musuh dari host ---
+  _applyRemoteEnemyState(enemies) {
+    const existing = {};
+    this.waveManager.enemies.forEach((e) => { existing[e.id] = e; });
+
+    const updated = [];
+    enemies.forEach((data) => {
+      if (data.dead) return; // musuh yang udah mati gak usah ditampilin lagi
+      let e = existing[data.id];
+      if (!e) e = this._createPuppetEnemy(data);
+      e.x = data.x;
+      e.y = data.y;
+      e.hp = data.hp;
+      e.maxHP = data.maxHP;
+      updated.push(e);
+    });
+
+    this.waveManager.enemies = updated;
+  }
+
+  // --- HOST: dipanggil tiap ada guest lapor "saya mukul musuh ini" ---
+  _applyRemoteAttack(payload) {
+    const enemy = this.waveManager.enemies.find((e) => e.id === payload.enemyId);
+    if (!enemy || enemy.dead) return;
+
+    enemy.takeDamage(payload.damage);
+    this.pushFloatingText(enemy.x, enemy.y - 16, `${payload.damage}`, '#4aa3ff');
+
+    if (enemy.dead) {
+      G.multiplayer.sendKillReward(payload.from, enemy.expReward);
+    }
+  }
+
+  // --- HOST: ringkas data musuh yang perlu dikirim ke guest (jangan kirim objek utuh,
+  // cukup yang perlu buat render + HP) ---
+  _serializeEnemyState() {
+    return this.waveManager.enemies.map((e) => ({
+      id: e.id,
+      type: e.type,
+      x: e.x,
+      y: e.y,
+      hp: e.hp,
+      maxHP: e.maxHP,
+      dead: e.dead
+    }));
+  }
+
+_setupPlayer() {
+    const playerImages = this._buildPlayerImages();
     this.player = new G.player.Player(this.worldW / 2, this.worldH / 2, playerImages, this.raceId, this.mimicRaceIds);
     G.items.iconImage = this.assets.iconsSheet;
     G.enemy.sprites = { goblin: this.assets.goblinSheet, witch: this.assets.witchSheet, archer: this.assets.archerSheet, boss: this.assets.bossSheet };
@@ -179,21 +274,34 @@ _setupPlayer() {
       }
     });
 
-    this.waveManager.update(dt, this.player);
-    this.waveManager.enemies.forEach((enemy) => {
-      if (enemy.type === 'archer') {
-        enemy.update(dt, this.player, (cfg) => this.spawnProjectile(cfg));
-      } else if (enemy.type === 'boss') {
-        enemy.update(dt, this.player, (cfg) => this.spawnProjectile(cfg), () => {});
-      } else {
-        enemy.update(dt, this.player, () => {});
-      }
-    });
+    // musuh & AI cuma dijalanin kalau solo ATAU host (sumber kebenaran). Guest gak jalanin
+    // AI sendiri sama sekali, dia cuma nampilin data yang dikirim host lewat _applyRemoteEnemyState.
+    if (this.mpMode !== 'guest') {
+      this.waveManager.update(dt, this.player);
+      this.waveManager.enemies.forEach((enemy) => {
+        if (enemy.type === 'archer') {
+          enemy.update(dt, this.player, (cfg) => this.spawnProjectile(cfg));
+        } else if (enemy.type === 'boss') {
+          enemy.update(dt, this.player, (cfg) => this.spawnProjectile(cfg), () => {});
+        } else {
+          enemy.update(dt, this.player, () => {});
+        }
+      });
 
-    const enemies = this.waveManager.enemies;
-    for (let i = 0; i < enemies.length; i++) {
-      for (let j = i + 1; j < enemies.length; j++) {
-        G.core.collision.resolveCircle(enemies[i], enemies[j]);
+      const enemies = this.waveManager.enemies;
+      for (let i = 0; i < enemies.length; i++) {
+        for (let j = i + 1; j < enemies.length; j++) {
+          G.core.collision.resolveCircle(enemies[i], enemies[j]);
+        }
+      }
+    }
+
+    // HOST: sebar snapshot musuh ke guest ~10x/detik
+    if (this.mpMode === 'host') {
+      this._enemyStateTimer += dt;
+      if (this._enemyStateTimer > 0.1) {
+        this._enemyStateTimer = 0;
+        G.multiplayer.sendEnemyState(this._serializeEnemyState());
       }
     }
 
@@ -209,6 +317,15 @@ _setupPlayer() {
     this.skillEffects = this.skillEffects.filter((e) => e.life > 0);
 
     this.camera.follow(this.player.x, this.player.y);
+
+    // Fase 1 multiplayer: kirim posisi player lokal ke server, gak tiap frame (~12x/detik cukup)
+    if (G.multiplayer && G.multiplayer.connected) {
+      this._mpSendTimer += dt;
+      if (this._mpSendTimer > 0.08) {
+        this._mpSendTimer = 0;
+        G.multiplayer.sendPosition(this.player.x, this.player.y, this.player.animator.direction, this.player.animator.moving);
+      }
+    }
 
     if (this.player.pendingSkillChoices > 0) {
       this.openSkillChoice();
@@ -258,6 +375,42 @@ _setupPlayer() {
     }
   }
 
+  // Fase 1 multiplayer: gambar pemain lain pakai animator/sprite race yang sama kayak
+  // player lokal (bukan cuma lingkaran), biar kelihatan konsisten.
+  drawRemotePlayers(ctx) {
+    if (!G.multiplayer) return;
+    const remotePlayers = G.multiplayer.getRemotePlayers();
+    const seenIds = new Set();
+
+    remotePlayers.forEach((rp) => {
+      seenIds.add(rp.id);
+
+      if (!this.remoteAnimators[rp.id]) {
+        this.remoteAnimators[rp.id] = G.player.createAnimator(this._buildPlayerImages(), rp.raceId || 'human');
+      }
+      const animator = this.remoteAnimators[rp.id];
+      animator.setState(rp.direction || 'down', !!rp.moving);
+      animator.update(1 / 60); // animasi tetep jalan halus meski update posisi cuma ~12x/detik
+
+      const s = this.camera.worldToScreen(rp.x, rp.y);
+      animator.draw(ctx, s.x, s.y);
+
+      ctx.save();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 3;
+      ctx.fillText(rp.name || 'Player', s.x, s.y - 34);
+      ctx.restore();
+    });
+
+    // buang animator pemain yang udah keluar/putus biar gak numpuk di memory
+    Object.keys(this.remoteAnimators).forEach((id) => {
+      if (!seenIds.has(id)) delete this.remoteAnimators[id];
+    });
+  }
+
   draw() {
     const ctx = this.ctx;
     this.drawBackground();
@@ -267,6 +420,7 @@ _setupPlayer() {
     const drawables = [...this.waveManager.enemies, this.player].sort((a, b) => a.y - b.y);
     drawables.forEach((d) => d.draw(ctx, this.camera));
 
+    this.drawRemotePlayers(ctx);
     this.drawSkillEffects(ctx);
 
     this.projectiles.forEach((p) => {
@@ -411,6 +565,7 @@ _setupPlayer() {
     this.waveManager = new G.wave.WaveManager(this.worldW, this.worldH);
     this._setupWaveManager();
     this._setupPlayer();
+    this._setupMultiplayer();
     this.chests = [];
     this.projectiles = [];
     this.floatingTexts = [];

@@ -39,10 +39,19 @@ class Enemy {
   }
 
   takeDamage(amount) {
+    // Guest di multiplayer: musuh ini cuma "boneka" hasil sync dari host, jangan diubah
+    // HP-nya di sini -- laporin ke host lewat server, host yang beneran ngurangin & nyebar
+    // hasilnya balik ke semua orang. Kalau host/solo, jalan normal kayak biasa.
+    if (this.isPuppet && G.multiplayer && G.multiplayer.roomCode && !G.multiplayer.isHost) {
+      this.hitFlash = 0.15; // tetep kasih efek kilat biar kerasa "kena", walau HP nunggu host
+      G.multiplayer.reportAttack(this.id, amount);
+      return;
+    }
+
     this.hp -= amount;
     this.hitFlash = 0.15;
     if (this.hp <= 0) this.dead = true;
-  }
+}
 
   update(dt, player) {
     if (this.hitFlash > 0) this.hitFlash -= dt;

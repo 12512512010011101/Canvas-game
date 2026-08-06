@@ -201,3 +201,91 @@
   color: var(--pink);
   font-style: italic;
 }
+/* ===== Party Modal (Buat/Join multiplayer) ===== */
+.party-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+
+.party-modal.visible {
+  display: flex;
+}
+
+.party-modal-box {
+  background: #1c2b1e;
+  border: 2px solid #3a5a3d;
+  border-radius: 12px;
+  padding: 28px 32px;
+  min-width: 300px;
+  max-width: 90vw;
+  text-align: center;
+  color: #eaf5ea;
+}
+
+.party-modal-box h2 {
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+.party-btn {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #4ade80;
+  color: #10240f;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.party-btn:hover {
+  background: #6ee08a;
+}
+
+.party-btn-secondary {
+  background: #3a5a3d;
+  color: #eaf5ea;
+}
+
+.party-btn-secondary:hover {
+  background: #4a6a4d;
+}
+
+#party-code-input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #3a5a3d;
+  background: #0f1a10;
+  color: #eaf5ea;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 2px;
+  box-sizing: border-box;
+}
+
+.party-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  min-height: 18px;
+}
+
+.party-code-display {
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: #ffd75e;
+  background: #0f1a10;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+}

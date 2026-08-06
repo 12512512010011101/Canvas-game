@@ -19,6 +19,11 @@ class Input {
       'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'
     ]);
     window.addEventListener('keydown', (e) => {
+      // kalau lagi ngetik di text input (misal kode party), biarin browser yang urus,
+      // jangan direbut sama kontrol game
+      const tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       if (GAME_KEYS.has(e.code)) {
         e.preventDefault();
       }

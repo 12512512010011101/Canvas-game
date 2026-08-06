@@ -3,6 +3,8 @@ window.G = window.G || {};
 G.enemy = G.enemy || {};
 
 G.enemy.spawn = {
+  _idCounter: 0,
+
   // Menentukan titik spawn di luar layar, di sekitar posisi player, dalam batas dunia.
   randomEdgePosition(player, worldW, worldH, margin = 60) {
     const side = G.core.rng.int(0, 3);
@@ -20,10 +22,16 @@ G.enemy.spawn = {
   },
 
   create(type, x, y, waveNumber, hpMult, dmgMult) {
-    if (type === 'goblin') return new G.enemy.Goblin(x, y, hpMult, dmgMult);
-    if (type === 'archer') return new G.enemy.Archer(x, y, hpMult, dmgMult);
-    if (type === 'poison') return new G.enemy.PoisonEnemy(x, y, hpMult, dmgMult);
-    if (type === 'boss') return new G.enemy.Boss(x, y, waveNumber);
-    return new G.enemy.Goblin(x, y, hpMult, dmgMult);
+    let e;
+    if (type === 'goblin') e = new G.enemy.Goblin(x, y, hpMult, dmgMult);
+    else if (type === 'archer') e = new G.enemy.Archer(x, y, hpMult, dmgMult);
+    else if (type === 'poison') e = new G.enemy.PoisonEnemy(x, y, hpMult, dmgMult);
+    else if (type === 'boss') e = new G.enemy.Boss(x, y, waveNumber);
+    else e = new G.enemy.Goblin(x, y, hpMult, dmgMult);
+
+    // ID unik per musuh -- dipakai buat sinkronisasi multiplayer (host <-> guest ngerujuk
+    // musuh yang sama pake id ini, bukan berdasar urutan array yang bisa beda-beda).
+    e.id = 'e' + (++this._idCounter);
+    return e;
   }
 };

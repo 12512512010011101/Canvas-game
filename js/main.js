@@ -10,6 +10,7 @@ window.G = window.G || {};
   G.core.touchControls.init(G.core.input);
   G.ui.raceSelect.init();
   G.ui.skillsBook.init();
+  G.ui.partyMenu.init();
 
   const menuEl = document.getElementById('main-menu');
   const loadingEl = document.getElementById('loading-text');
@@ -64,13 +65,17 @@ window.G = window.G || {};
   }
 
   startBtn.addEventListener('click', () => {
-    startBtn.blur(); // penting: lepas fokus biar Space gak ke-trigger klik tombol ini lagi
-    G.ui.raceSelect.show((raceId, mimicRaceIds) => launchGame(raceId, mimicRaceIds));
-  });
+    startBtn.blur();
+    G.ui.raceSelect.show((raceId, mimicRaceIds) => {
+      G.ui.partyMenu.show(raceId, mimicRaceIds, (raceId2, mimicRaceIds2) => launchGame(raceId2, mimicRaceIds2));
+    });
+});
 
   // main lagi dari game-over: pilih race lagi (barangkali mau ganti race)
   document.getElementById('btn-gameover-restart').addEventListener('click', (e) => {
     e.currentTarget.blur();
-    G.ui.raceSelect.show((raceId, mimicRaceIds) => launchGame(raceId, mimicRaceIds));
-  });
+    G.ui.raceSelect.show((raceId, mimicRaceIds) => {
+      G.ui.partyMenu.show(raceId, mimicRaceIds, (raceId2, mimicRaceIds2) => launchGame(raceId2, mimicRaceIds2));
+    });
+});
 })();
